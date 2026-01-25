@@ -270,7 +270,10 @@ namespace ImageTagger
             lstCategories.Items.Clear();
             foreach (var category in DataManager.Categories.OrderBy(c => c.Name))
             {
-                lstCategories.Items.Add(category.Name);
+                string displayText = category.ImagePaths.Count > 0 
+                    ? $"{category.Name} - {category.ImagePaths.Count}" 
+                    : category.Name;
+                lstCategories.Items.Add(displayText);
             }
             PopulateDynamicAddButtons(); // Refresh dynamic buttons whenever category list changes
         }
@@ -283,8 +286,14 @@ namespace ImageTagger
                 LogMessage("Warning: Please select a category first.");
                 return null;
             }
-            string selectedCategoryName = lstCategories.SelectedItem.ToString();
-            return DataManager.Categories.FirstOrDefault(c => c.Name == selectedCategoryName);
+            // Extract original category name (strip " - Count" if present)
+            string selectedText = lstCategories.SelectedItem.ToString() ?? "";
+            string categoryName = selectedText;
+            if (selectedText.Contains(" - "))
+            {
+                categoryName = selectedText.Substring(0, selectedText.LastIndexOf(" - "));
+            }
+            return DataManager.Categories.FirstOrDefault(c => c.Name == categoryName);
         }
 
         private void btnAddCategory_Click(object sender, EventArgs e)
@@ -308,8 +317,17 @@ namespace ImageTagger
             RefreshCategoryList(); // This also calls PopulateDynamicAddButtons()
             LogMessage($"Category '{newCategoryName}' added successfully.");
 
-            // Select the newly added category
-            lstCategories.SelectedItem = newCategoryName;
+            // Select the newly added category - note that RefreshCategoryList might have added " - 0"
+            // So we find the item that starts with the name
+            for (int i = 0; i < lstCategories.Items.Count; i++)
+            {
+                string itemText = lstCategories.Items[i].ToString() ?? "";
+                if (itemText == newCategoryName || itemText.StartsWith(newCategoryName + " - "))
+                {
+                    lstCategories.SelectedIndex = i;
+                    break;
+                }
+            }
 
             txtNewCategory.Clear();
             AdjustFormHeight(); // Adjust height after adding new category
@@ -389,7 +407,7 @@ namespace ImageTagger
                     {
                         category.ImagePaths.Clear(); // Clear all original paths from the category list
                         DataManager.Save();
-                        RefreshCategoryList(); // This also calls PopulateDynamicAddButtons()
+                        RefreshCategoryList(); // This also calls PopulateDynamicAddButtons() and updates counts
                         LogMessage($"Successfully copied {successCount} files. Source category list cleared.");
                     } else {
                         LogMessage($"Copy operation finished: {successCount} files copied, {failCount} failed. Source category list not cleared due to no successful copies.");
@@ -455,7 +473,7 @@ namespace ImageTagger
                     
                     category.ImagePaths = failedMovePaths; // Update the list to only contain paths that failed to move
                     DataManager.Save();
-                    RefreshCategoryList(); // This also calls PopulateDynamicAddButtons()
+                    RefreshCategoryList(); // This also calls PopulateDynamicAddButtons() and updates counts
                     LogMessage($"Move operation finished: {successCount} files moved, {failCount} failed/missing. Remaining items in category are failed moves.");
                 } else {
                     LogMessage("Move operation cancelled by user.");
@@ -509,8 +527,11 @@ namespace ImageTagger
             foreach (var category in DataManager.Categories.OrderBy(c => c.Name))
             {
                 Button btn = new Button();
-                btn.Text = $"Add to {category.Name}";
-                btn.Tag = category.Name; // Store category name for click handler
+                string btnText = category.ImagePaths.Count > 0 
+                    ? $"Add to {category.Name} - {category.ImagePaths.Count}" 
+                    : $"Add to {category.Name}";
+                btn.Text = btnText;
+                btn.Tag = category.Name; // Store original category name for click handler
                 btn.Width = btnWidth;
                 btn.Height = 40; // Fixed height
                 btn.Margin = new Padding(5);
@@ -551,6 +572,9 @@ namespace ImageTagger
                         DataManager.Save();
                         LogMessage($"Image '{Path.GetFileName(_imagePathToAdd)}' added to '{categoryName}'.");
                         
+                        // Refresh the UI to update counts
+                        RefreshCategoryList();
+
                         WinApi.ImageGlassControl.SendImageGlassKey(Keys.Right); // Automatically switch to next image
                         LogMessage("Automatically switched to next image after successful add.");
                         
