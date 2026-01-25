@@ -19,12 +19,20 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ImageTagger/ImageTagger.csproj
 
-    - name: Build
-      # Use github.run_number to dynamically set the patch version (1.0.run_number)
-      run: dotnet build ImageTagger/ImageTagger.csproj --configuration Release --no-restore -p:Version=1.0.${{ github.run_number }}
+    - name: Build and Publish
+      # Use dotnet publish to create a single standalone executable
+      run: |
+        dotnet publish ImageTagger/ImageTagger.csproj `
+          --configuration Release `
+          -r win-x64 `
+          --self-contained true `
+          -p:PublishSingleFile=true `
+          -p:PublishReadyToRun=true `
+          -p:Version=1.0.${{ github.run_number }} `
+          --output ./publish
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ImageTagger-v1.0.${{ github.run_number }}
-        path: ImageTagger/bin/Release/net8.0-windows/
+        path: ./publish/ImageTagger.exe
