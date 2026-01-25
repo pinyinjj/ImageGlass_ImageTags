@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Windows.Forms;
 using System.Linq; // Added for .Any() and .Contains()
+using ImageGlass.Tools;
 
 namespace ImageTagger
 {
@@ -37,18 +38,18 @@ namespace ImageTagger
                             {
                                 if (imagePath.Trim().StartsWith("{") && imagePath.Trim().EndsWith("}"))
                                 {
-                                    // It's likely an old JSON format. Try to parse.
+                                    // It's likely an old JSON format. Try to parse using SDK class.
                                     try
                                     {
-                                        var imageData = JsonSerializer.Deserialize<ImageGlassImageData>(imagePath);
-                                        if (!string.IsNullOrWhiteSpace(imageData?.FilePath))
+                                        var args = IgImageEventArgs.Deserialize(imagePath);
+                                        if (!string.IsNullOrWhiteSpace(args?.FilePath))
                                         {
-                                            processedPaths.Add(imageData.FilePath);
+                                            processedPaths.Add(args.FilePath);
                                         }
                                     }
-                                    catch (JsonException)
+                                    catch
                                     {
-                                        // Not a valid ImageGlassImageData JSON, treat as raw path if it's not empty
+                                        // Not a valid JSON, treat as raw path if it's not empty
                                         if (!string.IsNullOrWhiteSpace(imagePath))
                                         {
                                             processedPaths.Add(imagePath);

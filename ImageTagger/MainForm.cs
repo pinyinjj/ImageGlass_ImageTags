@@ -96,13 +96,13 @@ namespace ImageTagger
             // Check if an image path was passed as an argument
             if (_args.Length > 0 && !string.IsNullOrWhiteSpace(_args[0]))
             {
-                // Attempt to parse the argument as ImageGlassImageData JSON
+                // Attempt to parse the argument as IgImageLoadedEventArgs JSON
                 try
                 {
-                    var imageData = JsonSerializer.Deserialize<ImageGlassImageData>(_args[0]);
-                    _imagePathToAdd = imageData?.FilePath;
+                    var args = IgImageLoadedEventArgs.Deserialize(_args[0]);
+                    _imagePathToAdd = args?.FilePath;
                 }
-                catch (JsonException)
+                catch
                 {
                     // If not valid JSON, treat it as a plain file path (fallback)
                     _imagePathToAdd = _args[0];
@@ -178,38 +178,47 @@ namespace ImageTagger
 
             if (string.IsNullOrEmpty(e.MessageData)) 
             {
-                LogMessage($"[Debug] Message '{e.MessageName}' has no data.");
                 return;
             }
 
+            // Handle Image Loaded event using the official SDK class
             if (e.MessageName == ImageGlassEvents.IMAGE_LOADED) 
             {
-                // Ensure this is run on the UI thread
                 this.Invoke((MethodInvoker)delegate
                 {
                     try
                     {
-                        var imageData = JsonSerializer.Deserialize<ImageGlassImageData>(e.MessageData);
-                        if (imageData != null && !string.IsNullOrWhiteSpace(imageData.FilePath))
+                        // Use the Deserialize method provided by the SDK class
+                        var args = IgImageLoadedEventArgs.Deserialize(e.MessageData);
+                        if (args != null && !string.IsNullOrWhiteSpace(args.FilePath))
                         {
-                            _imagePathToAdd = imageData.FilePath;
+                            _imagePathToAdd = args.FilePath;
                             LogMessage($"ImageGlass loaded new image: {Path.GetFileName(_imagePathToAdd)}");
-                            PopulateDynamicAddButtons(); // This will also call AdjustFormHeight()
-                        }
-                        else
-                        {
-                            LogMessage($"Warning: Received IMAGE_LOADED with invalid FilePath. Data: {e.MessageData}");
+                            PopulateDynamicAddButtons();
                         }
                     }
-                    catch (JsonException ex)
+                    catch (Exception ex)
                     {
-                        LogMessage($"Error parsing ImageGlass IMAGE_LOADED data: {ex.Message}. Raw data: {e.MessageData}");
+                        LogMessage($"Error parsing IMAGE_LOADED data: {ex.Message}");
                     }
                 });
             }
-            else
+            // Also handle Image Loading event if needed
+            else if (e.MessageName == ImageGlassEvents.IMAGE_LOADING)
             {
-                LogMessage($"Received other message: {e.MessageName}");
+                this.Invoke((MethodInvoker)delegate
+                {
+                    try
+                    {
+                        var args = IgImageLoadingEventArgs.Deserialize(e.MessageData);
+                        // We can log that a new image is being loaded
+                        if (args != null)
+                        {
+                            LogMessage($"[Debug] Loading image at index: {args.NewIndex}");
+                        }
+                    }
+                    catch { /* Ignore parsing errors for loading event */ }
+                });
             }
         }
 
