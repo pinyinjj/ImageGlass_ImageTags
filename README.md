@@ -1,90 +1,172 @@
 # ImageGlass Image Tagger
 
-一个专为 [ImageGlass 9](https://imageglass.org/) 设计的轻量级图片分类管理插件。它允许用户在浏览图片时，通过一键点击将图片归类到自定义标签中，并支持后续的批量移动或复制操作。
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
+
+**ImageGlass Image Tagger** 是一个专为 [ImageGlass 9](https://imageglass.org/) 图片浏览器打造的高效分类与整理插件。它通过无缝集成，允许用户在浏览图片时，仅需一次点击即可完成图片的归类标记，并支持后续的一键批量移动或复制，极大地提升了素材整理和图片筛选的效率。
 
 ---
 
-## 1. 项目概述
-ImageTagger 旨在解决大量图片快速筛选与分类的痛点。通过与 ImageGlass 9 的深度集成，本工具可以实时感知当前显示的图片，并提供一个动态生成的快捷操作面板，极上地提高了图片整理的效率。
+## 📖 目录
 
-## 2. 技术架构与功能模块实现
-
-本项目采用 **C# / .NET 8.0 Windows Forms** 开发，核心架构基于“事件驱动 + 主动请求”的双向通信模型。
-
-### 核心功能模块划分：
-
-#### A. SDK 集成与通信模块 (`ImageGlass.Tools`)
-*   **实现原理**：通过 Named Pipes（命名管道）与 ImageGlass 主程序通信。
-*   **双向同步**：
-    *   **被动接收**：订阅 `ToolMessageReceived` 事件，使用官方 SDK 的 `IgImageLoadedEventArgs` 解析 JSON 数据，获取当前图片的 `FilePath`。
-    *   **主动请求（技术亮点）**：由于官方 SDK 未提供主动获取路径的 API，本项目利用 **Reflection（反射）** 技术访问 `ImageGlassTool` 的私有 `_client` 字段，发送 `igtool.request.get_image` 指令，确保在任何情况下（如插件中途启动）都能精准找回当前图片。
-
-#### B. 动态 UI 渲染引擎 (`MainForm.Layout`)
-*   **自适应缩放**：实现了 `AdjustFormHeight` 逻辑。程序会根据分类数量动态计算窗口高度，并根据屏幕分辨率进行自适应（最高占用屏幕 90% 空间）。
-*   **动态按钮生成**：基于 `DataManager` 中的分类数据，实时在 `FlowLayoutPanel` 中创建操作按钮。
-*   **实时计数**：每个按钮和列表项都会动态显示 `分类名 - 数量`，反馈极其直观。
-
-#### C. 数据持久化模块 (`DataManager`)
-*   **存储机制**：使用 `System.Text.Json` 将分类及图片路径列表序列化为 `tags.json`。
-*   **数据兼容性**：具备自动转换逻辑，能够识别并迁移旧版本的 JSON 数据格式。
-
-#### D. 远程控制模块 (`WinApi`)
-*   **按键注入**：利用 `user32.dll` 的 `keybd_event` API，在添加图片后自动向 ImageGlass 发送 `Right Arrow` 指令，实现“标记 -> 下一张”的流畅体验。
-*   **焦点管理**：通过 `SWP_NOACTIVATE` 标志强制窗口置顶（TopMost），在保持可见性的同时不抢夺 ImageGlass 的输入焦点。
+- [核心功能](#-核心功能)
+- [项目架构](#-项目架构)
+- [功能组件详解](#-功能组件详解)
+- [环境要求](#-环境要求)
+- [编译指南](#-编译指南)
+- [安装与配置](#-安装与配置)
+- [使用手册](#-使用手册)
+- [常见问题](#-常见问题)
+- [许可证](#-许可证)
 
 ---
 
-## 3. 核心功能
-*   **一键分类**：点击对应分类按钮，立即将当前图片路径存入该标签。
-*   **快速翻页**：插件内置 Prev/Next 按钮，可直接控制 ImageGlass 切换图片。
-*   **自动跳转**：成功标记后可配置自动切换至下一张图片。
-*   **分类管理**：支持实时增加、删除分类标签。
-*   **批量处理**：支持将某个分类下的所有图片一键 **复制** 或 **移动** 到指定文件夹，并具备重名冲突自动处理功能。
+## ✨ 核心功能
 
-## 4. 技术栈
-*   **语言**：C# 12.0
-*   **框架**：.NET 8.0 (Windows Forms)
-*   **SDK**：ImageGlass.Tools 1.9200.2
-*   **API**：Windows API (user32.dll)
+1.  **沉浸式标记体验**
+    *   **实时同步**：插件自动感知 ImageGlass 当前显示的图片。
+    *   **无焦点交互**：窗口保持置顶但不抢夺输入焦点（TopMost + NoActivate），确保你在 ImageGlass 中的快捷键（如缩放、平移）不受干扰。
+    *   **自动翻页**：标记图片后，自动模拟键盘“右箭头”操作，切换至下一张图片，形成流畅的“查看 -> 标记 -> 下一张”工作流。
 
-## 5. 安装部署
+2.  **灵活的分类管理**
+    *   支持动态创建、删除自定义分类标签（如“风景”、“待修图”、“素材”）。
+    *   根据分类数量自动调整窗口高度，最大化利用屏幕空间。
 
-### 环境要求
-*   Windows 10/11
-*   .NET 8.0 Runtime
-*   ImageGlass 9.0 或更高版本
+3.  **高效的批量处理**
+    *   **一键导出**：支持将某个分类下的所有图片批量 **复制** 或 **移动** 到指定文件夹。
+    *   **冲突处理**：自动处理文件名冲突（如 `image.jpg` -> `image (1).jpg`），防止覆盖。
 
-### 编译与运行
-1.  克隆仓库：`git clone https://github.com/pinyinjj/ImageGlass_ImageTags.git`
-2.  进入目录：`cd ImageTagger`
-3.  编译项目：`dotnet build -c Release`
-4.  在 `bin/Release/net8.0-windows/` 目录下找到 `ImageTagger.exe`。
-
-### 集成到 ImageGlass
-1.  打开 ImageGlass 设置 -> **工具 (Tools)**。
-2.  点击 **添加 (Add)**。
-3.  **名称**：Image Tagger
-4.  **可执行文件**：选择生成的 `ImageTagger.exe`。
-5.  **参数**：`<file>`
-6.  **重要**：勾选 **"Integrated with ImageGlass.Tools"**。
+4.  **数据持久化**
+    *   所有分类和标记数据自动保存为 `tags.json`，方便备份与迁移。
+    *   智能识别并修正旧版本数据路径。
 
 ---
 
-## 6. 使用方法
-1.  在 ImageGlass 中查看图片时，点击工具栏中的 `Image Tagger` 图标（或使用快捷键）。
-2.  在插件的“分类管理”页签中创建你的第一个标签（如：风景、人物）。
-3.  切换回“图片操作”页签，点击对应的 `Add to ...` 按钮。
-4.  整理完成后，在“分类管理”中点击 `Copy` 或 `Move` 导出你的战果。
+## 🏗 项目架构
 
-## 7. 贡献指南
-欢迎提交 Issue 或 Pull Request 来完善此工具。
-*   在修改 UI 时，请注意 `AdjustFormHeight` 的布局逻辑。
-*   保持对 `ImageGlass.Tools` SDK 规范的遵循。
+本项目基于 **C# / .NET 8.0 Windows Forms** 开发，采用 **“事件驱动 + 主动查询”** 的双向通信架构。
 
-## 8. 参考资料
-*   **官方文档**：[ImageGlass Tools 官方构建指南](https://imageglass.org/docs/build-tools-for-imageglass)
-*   **SDK 仓库**：[ImageGlass.Tools GitHub](https://github.com/ImageGlass/ImageGlass.Tools)
-*   **开发者中心**：[ImageGlass 官网](https://imageglass.org/)
+```mermaid
+graph TD
+    IG[ImageGlass 主程序] <-->|Named Pipes / ImageGlass.Tools SDK| Plugin[Image Tagger 插件]
+    Plugin -->|WinAPI Key Injection| IG
+    Plugin <-->|JSON Serialization| Data[tags.json 数据文件]
+```
 
-## 9. 许可证
-本项目采用 [MIT License](LICENSE) 许可。
+### 关键技术点
+
+*   **通信层**：使用 `ImageGlass.Tools` SDK 与主程序建立命名管道连接。
+    *   *被动接收*：监听 `ToolMessageReceived` 事件获取图片切换通知。
+    *   *主动请求*：使用 **Reflection (反射)** 技术访问 SDK 私有客户端，主动发送 `igtool.request.get_image` 指令，解决插件中途启动无法获取当前图片的问题。
+*   **交互层**：
+    *   使用 `user32.dll` 的 `SetWindowPos` (SWP_NOACTIVATE) 实现无焦点置顶。
+    *   使用 `keybd_event` 模拟键盘按键，实现远程控制翻页。
+*   **UI层**：根据 `DataManager` 的状态动态生成按钮布局，实现响应式高度调整。
+
+---
+
+## 🧩 功能组件详解
+
+| 组件文件 | 职责描述 |
+| :--- | :--- |
+| **`ImageTagger/MainForm.cs`** | **主界面逻辑**。负责 UI 渲染、动态按钮生成、窗口置顶控制以及与 SDK 的核心通信逻辑（包括反射调用）。 |
+| **`ImageTagger/DataManager.cs`** | **数据中心**。负责 `tags.json` 的读取与写入，管理分类列表（Category List）和图片路径集合，包含路径去重和兼容性处理逻辑。 |
+| **`ImageTagger/WinApi.cs`** | **系统底层交互**。封装 Windows API，用于查找 ImageGlass 窗口句柄、发送键盘事件以及控制窗口层级（Z-Order）。 |
+| **`ImageTagger/Category.cs`** | **数据模型**。定义分类的数据结构，包含分类名称和关联的图片路径列表。 |
+
+---
+
+## ✅ 环境要求
+
+*   **操作系统**: Windows 10 / 11
+*   **运行环境**: [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
+*   **宿主程序**: ImageGlass 9.0 或更高版本
+
+---
+
+## 🛠 编译指南
+
+本项目包含一个核心子项目 `ImageTagger`。请遵循以下步骤进行编译：
+
+1.  **克隆仓库**
+    ```bash
+    git clone https://github.com/pinyinjj/ImageGlass_ImageTags.git
+    cd ImageGlass_ImageTags
+    ```
+
+2.  **进入项目目录**
+    务必进入 `ImageTagger` 子目录，这是实际的 WinForms 项目所在位置。
+    ```bash
+    cd ImageTagger
+    ```
+
+3.  **执行编译**
+    使用 .NET CLI 进行发布模式编译：
+    ```bash
+    dotnet build -c Release
+    ```
+
+4.  **获取产物**
+    编译成功后，可执行文件位于：
+    `bin/Release/net8.0-windows/ImageTagger.exe`
+
+---
+
+## 📦 安装与配置
+
+将编译好的 `ImageTagger` 集成到 ImageGlass 中：
+
+1.  打开 ImageGlass，进入 **设置 (Settings)** -> **工具 (Tools)**。
+2.  点击 **添加 (Add)** 按钮创建新工具。
+3.  填写以下配置：
+    *   **Name (名称)**: `Image Tagger` (或你喜欢的名字)
+    *   **Command (命令)**: 浏览并选择你编译生成的 `ImageTagger.exe` 路径。
+    *   **Argument (参数)**: `<file>`
+        *   *注意：这会将当前图片路径作为启动参数传递。*
+    *   **Hotkeys (快捷键)**: 建议设置一个顺手的快捷键，例如 `Ctrl+T`。
+    *   **勾选选项**: ✅ **Integrated with ImageGlass.Tools**
+        *   *重要：必须勾选此项，插件才能通过管道与 ImageGlass 通信。*
+4.  点击 **Apply** 保存。
+
+---
+
+## 📖 使用手册
+
+### 1. 初始化分类
+*   启动插件（通过 ImageGlass 工具栏或快捷键）。
+*   切换到 **"Category Management" (分类管理)** 标签页。
+*   在输入框中输入分类名称（例如 "Wallpapers"），点击 **Add**。
+*   建议预先建立好所有常用分类。
+
+### 2. 开始标记
+*   在 ImageGlass 中浏览图片。
+*   点击插件界面上的 **"Add to [分类名]"** 按钮。
+*   **效果**：
+    1.  当前图片路径被记录到该分类。
+    2.  按钮上显示的计数加 1。
+    3.  ImageGlass 自动切换到下一张图片。
+
+### 3. 导出整理结果
+*   整理完成后，回到 **"Category Management"** 标签页。
+*   选中一个分类。
+*   点击 **Copy (复制)** 或 **Move (移动)**。
+*   选择目标文件夹，程序将自动开始传输文件，并报告成功数量。
+
+---
+
+## ❓ 常见问题
+
+**Q: 插件启动后显示 "No image loaded"？**
+A: 请确保在 ImageGlass 工具设置中勾选了 **"Integrated with ImageGlass.Tools"**。如果问题依旧，尝试在 ImageGlass 中手动切换一张图片，插件应会自动同步。
+
+**Q: 为什么我按了按钮，图片没有自动切换？**
+A: 插件通过模拟键盘按键实现翻页。请确保 ImageGlass 没有被最小化，且系统未拦截按键模拟。
+
+**Q: `tags.json` 文件在哪里？**
+A: 该文件位于 `ImageTagger.exe` 同级目录下。你可以随时备份此文件以保存你的整理进度。
+
+---
+
+## 📜 许可证
+
+本项目采用 [MIT License](LICENSE) 授权，欢迎自由修改与分发。
