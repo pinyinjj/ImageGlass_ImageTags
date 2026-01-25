@@ -2,9 +2,7 @@ name: Build ImageTagger
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "build" ]
 
 jobs:
   build:
@@ -22,10 +20,11 @@ jobs:
       run: dotnet restore ImageTagger/ImageTagger.csproj
 
     - name: Build
-      run: dotnet build ImageTagger/ImageTagger.csproj --configuration Release --no-restore
+      # Use github.run_number to dynamically set the patch version (1.0.run_number)
+      run: dotnet build ImageTagger/ImageTagger.csproj --configuration Release --no-restore -p:Version=1.0.${{ github.run_number }}
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ImageTagger-Release
+        name: ImageTagger-v1.0.${{ github.run_number }}
         path: ImageTagger/bin/Release/net8.0-windows/
