@@ -35,16 +35,20 @@ jobs:
           -p:Version=1.0.${{ github.run_number }} `
           --output ./publish
 
+    - name: Rename Executable
+      # Add version suffix to the exe name
+      run: |
+        Move-Item ./publish/ImageTagger.exe ./publish/ImageTagger-v1.0.${{ github.run_number }}.exe
+
     - name: List files in publish directory
       run: ls ./publish
 
     - name: Create GitHub Release
-      # This step will create a formal release on the repository's home page
       uses: softprops/action-gh-release@v2
       with:
         tag_name: v1.0.${{ github.run_number }}
         name: ImageTagger v1.0.${{ github.run_number }}
-        files: ./publish/ImageTagger.exe
+        files: ./publish/ImageTagger-v1.0.${{ github.run_number }}.exe
         draft: false
         prerelease: false
         generate_release_notes: true
@@ -55,4 +59,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ImageTagger-v1.0.${{ github.run_number }}
-        path: ./publish/
+        path: ./publish/ImageTagger-v1.0.${{ github.run_number }}.exe
