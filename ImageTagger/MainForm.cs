@@ -48,18 +48,43 @@ namespace ImageTagger
                 _igTool.ToolMessageReceived += _igTool_ToolMessageReceived;
                 LogMessage("Debug: ImageGlassTool initialized and connected.");
                 
+                // Initial connect
+                _igTool.ConnectAsync();
+
                 // Request current image info on startup
                 RequestCurrentImage();
             }
         }
 
-        private void RequestCurrentImage()
+        private async void RequestCurrentImage()
         {
-            if (_igTool != null)
+            if (_igTool == null) return;
+
+            try
             {
-                // In ImageGlass 9, sending a message can trigger ImageGlass to re-send the IMAGE_LOADED event
-                _igTool.SendMessage("GET_IMAGE", "");
-                LogMessage("Debug: Requested current image info from ImageGlass.");
+                // ImageGlassTool uses an internal PipeClient named _client.
+                // We use reflection to access it and send a request for the current image.
+                var clientField = typeof(ImageGlassTool).GetField("_client", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                var client = clientField?.GetValue(_igTool);
+                if (client != null)
+                {
+                    var sendAsyncMethod = client.GetType().GetMethod("SendAsync", new[] { typeof(string) });
+                    if (sendAsyncMethod != null)
+                    {
+                        // In ImageGlass 9, sending a message can trigger ImageGlass to re-send the IMAGE_LOADED event.
+                        // The format expected by PipeClient is "MessageName{: +IG_TOOL+:}MessageData"
+                        string msgSeparator = (string)typeof(ImageGlassTool).GetProperty("MSG_SEPARATOR", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static).GetValue(null);
+                        string message = $"igtool.request.get_image{msgSeparator}";
+                        
+                        var task = (Task)sendAsyncMethod.Invoke(client, new object[] { message });
+                        await task;
+                        LogMessage("Debug: Requested current image info from ImageGlass.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Debug: Failed to request image via reflection: {ex.Message}");
             }
         }
 
