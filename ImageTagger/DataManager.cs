@@ -1,94 +1,80 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Windows.Forms;
-using System.Linq; // Added for .Any() and .Contains()
 using ImageGlass.Tools;
 
 namespace ImageTagger
 {
+    /// <summary>
+    /// Handles persistent storage and loading of categories and tagged image paths.
+    /// </summary>
     public static class DataManager
     {
-        private static readonly string _filePath;
-        public static List<Category> Categories { get; set; }
+        private static readonly string StoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
+        public static List<Category> Categories { get; set; } = new();
 
-        static DataManager()
-        {
-            // The json file will be stored in the same directory as the executable.
-            _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
-            Categories = new List<Category>();
-        }
-
+        /// <summary>
+        /// Loads category data from the local JSON file.
+        /// </summary>
         public static void Load()
         {
-            if (File.Exists(_filePath))
+            if (!File.Exists(StoragePath)) return;
+
+            try
             {
-                try
+                string json = File.ReadAllText(StoragePath);
+                var loaded = JsonSerializer.Deserialize<List<Category>>(json);
+                if (loaded == null) return;
+
+                foreach (var category in loaded)
                 {
-                    string json = File.ReadAllText(_filePath);
-                    var loadedCategories = JsonSerializer.Deserialize<List<Category>>(json);
-                    if (loadedCategories != null)
+                    var processed = new List<string>();
+                    foreach (var path in category.ImagePaths)
                     {
-                        // Process loaded paths: if they are old JSON format, extract FilePath
-                        foreach (var category in loadedCategories)
+                        if (string.IsNullOrWhiteSpace(path)) continue;
+
+                        // Compatibility check for legacy JSON-embedded paths
+                        if (path.Trim().StartsWith("{"))
                         {
-                            var processedPaths = new List<string>();
-                            foreach (var imagePath in category.ImagePaths)
+                            try
                             {
-                                if (imagePath.Trim().StartsWith("{") && imagePath.Trim().EndsWith("}"))
-                                {
-                                    // It's likely an old JSON format. Try to parse using SDK class.
-                                    try
-                                    {
-                                        var args = IgImageEventArgs.Deserialize(imagePath);
-                                        if (!string.IsNullOrWhiteSpace(args?.FilePath))
-                                        {
-                                            processedPaths.Add(args.FilePath);
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        // Not a valid JSON, treat as raw path if it's not empty
-                                        if (!string.IsNullOrWhiteSpace(imagePath))
-                                        {
-                                            processedPaths.Add(imagePath);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    // Assume it's a plain file path already
-                                    if (!string.IsNullOrWhiteSpace(imagePath))
-                                    {
-                                        processedPaths.Add(imagePath);
-                                    }
-                                }
+                                var args = IgImageEventArgs.Deserialize(path);
+                                if (!string.IsNullOrWhiteSpace(args?.FilePath)) processed.Add(args.FilePath);
                             }
-                            // Remove duplicates and assign
-                            category.ImagePaths = processedPaths.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                            catch { processed.Add(path); }
                         }
-                        Categories = loadedCategories;
+                        else
+                        {
+                            processed.Add(path);
+                        }
                     }
+                    category.ImagePaths = processed.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error loading categories: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                Categories = loaded;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading data: {ex.Message}", "Storage Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+        /// <summary>
+        /// Saves current category data to the local JSON file.
+        /// </summary>
         public static void Save()
         {
             try
             {
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 string json = JsonSerializer.Serialize(Categories, options);
-                File.WriteAllText(_filePath, json);
+                File.WriteAllText(StoragePath, json);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error saving categories: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Error saving data: {ex.Message}", "Storage Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }
