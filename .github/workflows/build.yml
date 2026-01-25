@@ -21,6 +21,8 @@ jobs:
 
     - name: Build and Publish
       # Use dotnet publish to create a single standalone executable
+      # -p:PublishSingleFile=true: Bundles everything into the .exe
+      # --self-contained true: Includes .NET runtime so it runs anywhere
       run: |
         dotnet publish ImageTagger/ImageTagger.csproj `
           --configuration Release `
@@ -28,11 +30,17 @@ jobs:
           --self-contained true `
           -p:PublishSingleFile=true `
           -p:PublishReadyToRun=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
           -p:Version=1.0.${{ github.run_number }} `
           --output ./publish
+
+    - name: List files in publish directory
+      # This helps to verify in the action logs that the .exe exists
+      run: ls ./publish
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ImageTagger-v1.0.${{ github.run_number }}
-        path: ./publish/ImageTagger.exe
+        # Upload the entire publish folder so you don't miss anything
+        path: ./publish/
