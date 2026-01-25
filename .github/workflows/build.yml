@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "build" ]
 
+# Explicitly grant permissions to create releases
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -20,9 +24,6 @@ jobs:
       run: dotnet restore ImageTagger/ImageTagger.csproj
 
     - name: Build and Publish
-      # Use dotnet publish to create a single standalone executable
-      # -p:PublishSingleFile=true: Bundles everything into the .exe
-      # --self-contained true: Includes .NET runtime so it runs anywhere
       run: |
         dotnet publish ImageTagger/ImageTagger.csproj `
           --configuration Release `
@@ -35,12 +36,23 @@ jobs:
           --output ./publish
 
     - name: List files in publish directory
-      # This helps to verify in the action logs that the .exe exists
       run: ls ./publish
+
+    - name: Create GitHub Release
+      # This step will create a formal release on the repository's home page
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: ImageTagger v1.0.${{ github.run_number }}
+        files: ./publish/ImageTagger.exe
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ImageTagger-v1.0.${{ github.run_number }}
-        # Upload the entire publish folder so you don't miss anything
         path: ./publish/
