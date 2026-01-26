@@ -21,11 +21,11 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Restore dependencies
-      run: dotnet restore ImageTagger/ImageTagger.csproj
+      run: dotnet restore ImageTagger.csproj
 
     - name: Build and Publish
       run: |
-        dotnet publish ImageTagger/ImageTagger.csproj `
+        dotnet publish ImageTagger.csproj `
           --configuration Release `
           -r win-x64 `
           --self-contained true `
