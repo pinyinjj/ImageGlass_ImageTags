@@ -1,82 +1,36 @@
-# ImageGlass Image Tagger
+# Image Tagger
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
 
-**ImageGlass Image Tagger** 是一个专为 [ImageGlass 9](https://imageglass.org/) 图片浏览器打造的高效分类与整理插件。它通过无缝集成，允许用户在浏览图片时，仅需一次点击即可完成图片的归类标记，并支持后续的一键批量移动或复制，极大地提升了素材整理和图片筛选的效率。
+**Image Tagger** 是一个专为 [ImageGlass 9](https://imageglass.org/) 图片浏览器打造的高效分类与整理插件。它通过无缝集成，允许用户在浏览图片时，仅需一次点击即可完成图片的归类标记，并支持后续的一键批量移动或复制，极大地提升了素材整理和图片筛选的效率。
 
 ---
 
-## 📖 目录
-
-- [核心功能](#-核心功能)
-- [项目架构](#-项目架构)
-- [功能组件详解](#-功能组件详解)
-- [环境要求](#-环境要求)
-- [编译指南](#-编译指南)
-- [安装与配置](#-安装与配置)
-- [使用手册](#-使用手册)
-- [常见问题](#-常见问题)
-- [许可证](#-许可证)
-
----
 
 ## ✨ 核心功能
 
-1.  **沉浸式标记体验**
+  **沉浸式标记体验**
     *   **实时同步**：插件自动感知 ImageGlass 当前显示的图片。
     *   **无焦点交互**：窗口保持置顶但不抢夺输入焦点（TopMost + NoActivate），确保你在 ImageGlass 中的快捷键（如缩放、平移）不受干扰。
     *   **自动翻页**：标记图片后，自动模拟键盘“右箭头”操作，切换至下一张图片，形成流畅的“查看 -> 标记 -> 下一张”工作流。
 
-2.  **灵活的分类管理**
+ **灵活的分类管理**
     *   支持动态创建、删除自定义分类标签（如“风景”、“待修图”、“素材”）。
     *   根据分类数量自动调整窗口高度，最大化利用屏幕空间。
 
-3.  **高效的批量处理**
+  **高效的批量处理**
     *   **一键导出**：支持将某个分类下的所有图片批量 **复制** 或 **移动** 到指定文件夹。
     *   **冲突处理**：自动处理文件名冲突（如 `image.jpg` -> `image (1).jpg`），防止覆盖。
 
-4.  **数据持久化**
+  **数据持久化**
     *   所有分类和标记数据自动保存为 `tags.json`，方便备份与迁移。
     *   智能识别并修正旧版本数据路径。
 
 ---
 
-## 🏗 项目架构
 
-本项目基于 **C# / .NET 8.0 Windows Forms** 开发，采用 **“事件驱动 + 主动查询”** 的双向通信架构。
-
-```mermaid
-graph TD
-    IG[ImageGlass 主程序] <-->|Named Pipes / ImageGlass.Tools SDK| Plugin[Image Tagger 插件]
-    Plugin -->|WinAPI Key Injection| IG
-    Plugin <-->|JSON Serialization| Data[tags.json 数据文件]
-```
-
-### 关键技术点
-
-*   **通信层**：使用 `ImageGlass.Tools` SDK 与主程序建立命名管道连接。
-    *   *被动接收*：监听 `ToolMessageReceived` 事件获取图片切换通知。
-    *   *主动请求*：使用 **Reflection (反射)** 技术访问 SDK 私有客户端，主动发送 `igtool.request.get_image` 指令，解决插件中途启动无法获取当前图片的问题。
-*   **交互层**：
-    *   使用 `user32.dll` 的 `SetWindowPos` (SWP_NOACTIVATE) 实现无焦点置顶。
-    *   使用 `keybd_event` 模拟键盘按键，实现远程控制翻页。
-*   **UI层**：根据 `DataManager` 的状态动态生成按钮布局，实现响应式高度调整。
-
----
-
-## 🧩 功能组件详解
-
-| 组件文件 | 职责描述 |
-| :--- | :--- |
-| **`ImageTagger/MainForm.cs`** | **主界面逻辑**。负责 UI 渲染、动态按钮生成、窗口置顶控制以及与 SDK 的核心通信逻辑（包括反射调用）。 |
-| **`ImageTagger/DataManager.cs`** | **数据中心**。负责 `tags.json` 的读取与写入，管理分类列表（Category List）和图片路径集合，包含路径去重和兼容性处理逻辑。 |
-| **`ImageTagger/WinApi.cs`** | **系统底层交互**。封装 Windows API，用于查找 ImageGlass 窗口句柄、发送键盘事件以及控制窗口层级（Z-Order）。 |
-| **`ImageTagger/Category.cs`** | **数据模型**。定义分类的数据结构，包含分类名称和关联的图片路径列表。 |
-
----
-
-## ✅ 环境要求
+## 环境要求
 
 *   **操作系统**: Windows 10 / 11
 *   **运行环境**: [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
@@ -86,27 +40,19 @@ graph TD
 
 ## 🛠 编译指南
 
-本项目包含一个核心子项目 `ImageTagger`。请遵循以下步骤进行编译：
-
 1.  **克隆仓库**
     ```bash
     git clone https://github.com/pinyinjj/ImageGlass_ImageTags.git
     cd ImageGlass_ImageTags
     ```
 
-2.  **进入项目目录**
-    务必进入 `ImageTagger` 子目录，这是实际的 WinForms 项目所在位置。
-    ```bash
-    cd ImageTagger
-    ```
-
-3.  **执行编译**
+2.  **执行编译**
     使用 .NET CLI 进行发布模式编译：
     ```bash
     dotnet build -c Release
     ```
 
-4.  **获取产物**
+3.  **获取产物**
     编译成功后，可执行文件位于：
     `bin/Release/net8.0-windows/ImageTagger.exe`
 
