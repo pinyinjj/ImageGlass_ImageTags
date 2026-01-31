@@ -13,7 +13,7 @@ using ImageGlass.Tools;
 namespace ImageTagger
 {
     /// <summary>
-    /// Main window for image tagging and category management.
+    /// Main window for image tagging and tag management.
     /// Integrated with ImageGlass via official SDK and WinApi.
     /// </summary>
     public partial class MainForm : Form
@@ -89,7 +89,19 @@ namespace ImageTagger
         private void MainForm_Load(object sender, EventArgs e)
         {
             DataManager.Load();
-            RefreshCategoryList();
+            RefreshTagList();
+            InitializeTagContextMenu();
+            
+            // Hide old controls
+            btnDeleteTag.Visible = false;
+            txtNewTag.Visible = false;
+            btnAddTag.Visible = false;
+
+            // Reposition GroupBox to fill gap from hidden controls
+            grpTagActions.Top = lstTags.Bottom + 10;
+
+            // Initialize new UI
+            InitializeHeaderButtons();
 
             // Handle initial startup image data
             if (_args.Length > 0 && !string.IsNullOrWhiteSpace(_args[0]))
@@ -106,13 +118,13 @@ namespace ImageTagger
 
                 if (!string.IsNullOrWhiteSpace(_imagePathToAdd) && File.Exists(_imagePathToAdd))
                 {
-                    tabControlMain.SelectedTab = tabPageImageOperations;
+                    tabControlMain.SelectedTab = tabPageTagging;
                     PopulateDynamicAddButtons();
                 }
             }
             else
             {
-                 tabControlMain.SelectedTab = tabPageCategories;
+                 tabControlMain.SelectedTab = tabPageTags;
             }
 
             AdjustFormHeight();
@@ -187,77 +199,88 @@ namespace ImageTagger
             }
         }
 
-        private void RefreshCategoryList()
+        private void RefreshTagList()
         {
-            lstCategories.Items.Clear();
-            foreach (var category in DataManager.Categories.OrderBy(c => c.Name))
+            lstTags.Items.Clear();
+            foreach (var tag in DataManager.Tags.OrderBy(c => c.Name))
             {
-                string displayText = category.ImagePaths.Count > 0 
-                    ? $"{category.Name} - {category.ImagePaths.Count}" 
-                    : category.Name;
-                lstCategories.Items.Add(displayText);
+                string displayText = tag.ImagePaths.Count > 0 
+                    ? $"{tag.Name} - {tag.ImagePaths.Count}" 
+                    : tag.Name;
+                lstTags.Items.Add(displayText);
             }
             PopulateDynamicAddButtons();
         }
 
-        private Category? GetSelectedCategory()
+        private Tag? GetSelectedTag()
         {
-            if (lstCategories.SelectedItem == null)
+            if (lstTags.SelectedItem == null)
             {
-                LogMessage("Warning: Please select a category first.");
+                LogMessage("Warning: Please select a tag first.");
                 return null;
             }
 
-            string selectedText = lstCategories.SelectedItem.ToString() ?? "";
-            string categoryName = selectedText;
+            string selectedText = lstTags.SelectedItem.ToString() ?? "";
+            string tagName = selectedText;
             if (selectedText.Contains(" - "))
             {
-                categoryName = selectedText.Substring(0, selectedText.LastIndexOf(" - "));
+                tagName = selectedText.Substring(0, selectedText.LastIndexOf(" - "));
             }
-            return DataManager.Categories.FirstOrDefault(c => c.Name == categoryName);
+            return DataManager.Tags.FirstOrDefault(c => c.Name == tagName);
         }
 
-        private void btnAddCategory_Click(object sender, EventArgs e)
+        private void btnAddTag_Click(object sender, EventArgs e)
         {
-            string name = txtNewCategory.Text.Trim();
+            string name = txtNewTag.Text.Trim();
             if (string.IsNullOrEmpty(name)) return;
 
-            if (DataManager.Categories.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            if (DataManager.Tags.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             {
                 LogMessage($"Warning: '{name}' already exists.");
                 return;
             }
 
-            DataManager.Categories.Add(new Category { Name = name });
+            DataManager.Tags.Add(new Tag { Name = name });
             DataManager.Save();
-            RefreshCategoryList();
+            RefreshTagList();
             
-            for (int i = 0; i < lstCategories.Items.Count; i++)
+            for (int i = 0; i < lstTags.Items.Count; i++)
             {
-                if (lstCategories.Items[i].ToString()?.StartsWith(name) == true)
+                if (lstTags.Items[i].ToString()?.StartsWith(name) == true)
                 {
-                    lstCategories.SelectedIndex = i;
+                    lstTags.SelectedIndex = i;
                     break;
                 }
             }
 
-            txtNewCategory.Clear();
+            txtNewTag.Clear();
             AdjustFormHeight();
         }
 
-        private void btnDeleteCategory_Click(object sender, EventArgs e)
+        private void ItemDelete_Click(object? sender, EventArgs e)
         {
-            var category = GetSelectedCategory();
-            if (category == null) return;
+            DeleteSelectedTag();
+        }
 
-            var result = MessageBox.Show($"Delete category '{category.Name}'?", "Confirm", MessageBoxButtons.YesNo);
+        private void DeleteSelectedTag()
+        {
+            var tag = GetSelectedTag();
+            if (tag == null) return;
+
+            var result = MessageBox.Show($"Delete tag '{tag.Name}'?", "Confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (result == DialogResult.Yes)
             {
-                DataManager.Categories.Remove(category);
+                DataManager.Tags.Remove(tag);
                 DataManager.Save();
-                RefreshCategoryList();
+                RefreshTagList();
+                LogMessage($"Deleted tag '{tag.Name}'.");
             }
             AdjustFormHeight();
+        }
+
+        private void btnDeleteTag_Click(object sender, EventArgs e)
+        {
+            DeleteSelectedTag();
         }
         
         private void btnCopy_Click(object sender, EventArgs e) => BatchProcess(false);
@@ -265,8 +288,8 @@ namespace ImageTagger
 
         private void BatchProcess(bool move)
         {
-            var category = GetSelectedCategory();
-            if (category == null || category.ImagePaths.Count == 0) return;
+            var tag = GetSelectedTag();
+            if (tag == null || tag.ImagePaths.Count == 0) return;
 
             using var fbd = new FolderBrowserDialog();
             if (fbd.ShowDialog() == DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
@@ -274,7 +297,7 @@ namespace ImageTagger
                 int success = 0;
                 var remaining = new List<string>();
 
-                foreach (string src in category.ImagePaths)
+                foreach (string src in tag.ImagePaths)
                 {
                     if (File.Exists(src))
                     {
@@ -293,11 +316,11 @@ namespace ImageTagger
                     }
                 }
 
-                if (move) category.ImagePaths = remaining;
-                else if (success > 0) category.ImagePaths.Clear();
+                if (move) tag.ImagePaths = remaining;
+                else if (success > 0) tag.ImagePaths.Clear();
 
                 DataManager.Save();
-                RefreshCategoryList();
+                RefreshTagList();
                 LogMessage($"{(move ? "Moved" : "Copied")} {success} files.");
             }
         }
@@ -327,12 +350,12 @@ namespace ImageTagger
 
             int width = Math.Max(240, pnlDynamicAddButtons.ClientSize.Width - 20);
 
-            foreach (var category in DataManager.Categories.OrderBy(c => c.Name))
+            foreach (var tag in DataManager.Tags.OrderBy(c => c.Name))
             {
                 var btn = new Button
                 {
-                    Text = category.ImagePaths.Count > 0 ? $"Add to {category.Name} - {category.ImagePaths.Count}" : $"Add to {category.Name}",
-                    Tag = category.Name,
+                    Text = tag.ImagePaths.Count > 0 ? $"Add to {tag.Name} - {tag.ImagePaths.Count}" : $"Add to {tag.Name}",
+                    Tag = tag.Name,
                     Width = width,
                     Height = 40,
                     Margin = new Padding(5)
@@ -345,28 +368,28 @@ namespace ImageTagger
 
         private void DynamicAddButton_Click(object? sender, EventArgs e)
         {
-            if (_imagePathToAdd == null || sender is not Button btn || btn.Tag is not string categoryName) return;
+            if (_imagePathToAdd == null || sender is not Button btn || btn.Tag is not string tagName) return;
 
-            var category = DataManager.Categories.FirstOrDefault(c => c.Name == categoryName);
-            if (category == null) return;
+            var tag = DataManager.Tags.FirstOrDefault(c => c.Name == tagName);
+            if (tag == null) return;
 
-            if (category.ImagePaths.Contains(_imagePathToAdd))
+            if (tag.ImagePaths.Contains(_imagePathToAdd))
             {
-                LogMessage($"Already in '{categoryName}'.");
+                LogMessage($"Already in '{tagName}'.");
             }
             else
             {
-                category.ImagePaths.Add(_imagePathToAdd);
+                tag.ImagePaths.Add(_imagePathToAdd);
                 DataManager.Save();
-                LogMessage($"Added '{Path.GetFileName(_imagePathToAdd)}' to '{categoryName}'.");
-                RefreshCategoryList();
+                LogMessage($"Added '{Path.GetFileName(_imagePathToAdd)}' to '{tagName}'.");
+                RefreshTagList();
                 Navigate(1); // Auto next
             }
         }
 
         private void tabControlMain_SelectedIndexChanged(object? sender, EventArgs e)
         {
-            if (tabControlMain.SelectedTab == tabPageImageOperations) PopulateDynamicAddButtons();
+            if (tabControlMain.SelectedTab == tabPageTagging) PopulateDynamicAddButtons();
             AdjustFormHeight();
         }
 
@@ -377,7 +400,10 @@ namespace ImageTagger
             string name = Path.GetFileNameWithoutExtension(path);
             string ext = Path.GetExtension(path);
             int i = 1;
-            while (File.Exists(Path.Combine(dir, $"{name} ({i}){ext}"))) i++;
+            while (File.Exists(Path.Combine(dir, $"{name} ({i}){ext}")))
+            {
+                i++;
+            }
             return Path.Combine(dir, $"{name} ({i}){ext}");
         }
 
@@ -391,7 +417,7 @@ namespace ImageTagger
             int overhead = (this.Height - this.ClientSize.Height) + tabControlMain.Top + rtbLog.Height + 40;
 
             int tabH = 0;
-            if (tabControlMain.SelectedTab == tabPageImageOperations)
+            if (tabControlMain.SelectedTab == tabPageTagging)
             {
                 int btnH = pnlDynamicAddButtons.Controls.Cast<Control>().Sum(c => c.Height + c.Margin.Vertical) + 20;
                 pnlDynamicAddButtons.Height = Math.Min(btnH, maxH - overhead - 100);
@@ -399,7 +425,7 @@ namespace ImageTagger
             }
             else
             {
-                tabH = grpCategoryActions.Bottom + 10;
+                tabH = grpTagActions.Bottom + 10;
             }
 
             int headerH = Math.Max(24, tabControlMain.Height - tabControlMain.DisplayRectangle.Height);
@@ -408,6 +434,235 @@ namespace ImageTagger
             this.ClientSize = new Size(this.ClientSize.Width, rtbLog.Bottom + 10);
 
             this.ResumeLayout();
+        }
+
+        private void InitializeTagContextMenu()
+        {
+            var ctxMenu = new ContextMenuStrip();
+            
+            var itemClear = new ToolStripMenuItem("Clear");
+            itemClear.Click += ItemClear_Click;
+            
+            var itemDuplicate = new ToolStripMenuItem("Duplicate");
+            itemDuplicate.Click += ItemCopy_Click;
+
+            var itemDelete = new ToolStripMenuItem("Delete");
+            itemDelete.Click += ItemDelete_Click;
+
+            ctxMenu.Items.Add(itemClear);
+            ctxMenu.Items.Add(itemDuplicate);
+            ctxMenu.Items.Add(new ToolStripSeparator());
+            ctxMenu.Items.Add(itemDelete);
+
+            lstTags.ContextMenuStrip = ctxMenu;
+            lstTags.MouseDown += LstCategories_MouseDown;
+        }
+
+        private void InitializeHeaderButtons()
+        {
+            // Calculate positions based on the list box or tab page
+            int btnSize = 25;
+            int padding = 5;
+            int rightEdge = lstTags.Right;
+            int topPos = lstTags.Top - btnSize - 2;
+
+            var btnMinus = new Button
+            {
+                Text = "-",
+                Size = new Size(btnSize, btnSize),
+                Location = new Point(rightEdge - btnSize, topPos),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Parent = tabPageTags,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Padding = new Padding(0, 0, 0, 3), // Bottom padding pushes text up
+                UseCompatibleTextRendering = true,
+                Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point)
+            };
+            btnMinus.Click += (s, e) => DeleteSelectedTag();
+
+            var btnPlus = new Button
+            {
+                Text = "+",
+                Size = new Size(btnSize, btnSize),
+                Location = new Point(rightEdge - btnSize * 2 - padding, topPos),
+                Anchor = AnchorStyles.Top | AnchorStyles.Right,
+                Parent = tabPageTags,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Padding = new Padding(0, 0, 0, 3),
+                UseCompatibleTextRendering = true,
+                Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point)
+            };
+            btnPlus.Click += BtnPlus_Click;
+            
+            // Ensure they are on top
+            btnMinus.BringToFront();
+            btnPlus.BringToFront();
+        }
+
+                        private void BtnPlus_Click(object? sender, EventArgs e)
+                        {
+                            _zOrderTimer.Stop();
+                            try
+                            {
+                                using var form = new Form
+                                {
+                                    Text = "Add Tag",
+                                    ClientSize = new Size(350, 140),
+                                    StartPosition = FormStartPosition.CenterParent,
+                                    FormBorderStyle = FormBorderStyle.FixedDialog,
+                                    MaximizeBox = false,
+                                    MinimizeBox = false,
+                                    ShowIcon = false,
+                                    ShowInTaskbar = false,
+                                    ControlBox = true,
+                                    AutoScaleMode = AutoScaleMode.Font,
+                                    Font = new Font("Segoe UI", 9F),
+                                    TopMost = true
+                                };
+                
+                                var lbl = new Label 
+                                { 
+                                    Text = "Enter new tag name:", 
+                                    Left = 20, 
+                                    Top = 20, 
+                                    AutoSize = true,
+                                    TabIndex = 2
+                                };
+                                
+                                var txt = new TextBox 
+                                { 
+                                    Left = 20, 
+                                    Top = 45, 
+                                    Width = 310, 
+                                    TabIndex = 0 
+                                };
+                                
+                                var btnAdd = new Button 
+                                { 
+                                    Text = "Add", 
+                                    Left = 170, 
+                                    Top = 90,
+                                    Width = 75, 
+                                    Height = 30,
+                                    DialogResult = DialogResult.OK,
+                                    UseVisualStyleBackColor = true,
+                                    TabIndex = 1
+                                };
+                                
+                                var btnCancel = new Button 
+                                { 
+                                    Text = "Cancel", 
+                                    Left = 255, 
+                                    Top = 90, 
+                                    Width = 75, 
+                                    Height = 30, 
+                                    DialogResult = DialogResult.Cancel,
+                                    UseVisualStyleBackColor = true,
+                                    TabIndex = 3
+                                };
+                
+                                form.Controls.AddRange(new Control[] { lbl, txt, btnAdd, btnCancel });
+                                form.AcceptButton = btnAdd;
+                                form.CancelButton = btnCancel;
+                
+                                if (form.ShowDialog(this) == DialogResult.OK)
+                                {
+                                    string name = txt.Text.Trim();
+                                    if (!string.IsNullOrEmpty(name))
+                                    {
+                                       CreateTag(name);
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                _zOrderTimer.Start();
+                            }
+                        }        private void CreateTag(string name)
+        {
+             if (DataManager.Tags.Any(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                LogMessage($"Warning: '{name}' already exists.");
+                return;
+            }
+
+            DataManager.Tags.Add(new Tag { Name = name });
+            DataManager.Save();
+            RefreshTagList();
+            
+            for (int i = 0; i < lstTags.Items.Count; i++)
+            {
+                if (lstTags.Items[i].ToString()?.StartsWith(name) == true)
+                {
+                    lstTags.SelectedIndex = i;
+                    break;
+                }
+            }
+            AdjustFormHeight();
+            LogMessage($"Added tag '{name}'.");
+        }
+
+        private void LstCategories_MouseDown(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                int index = lstTags.IndexFromPoint(e.Location);
+                if (index != ListBox.NoMatches)
+                {
+                    lstTags.SelectedIndex = index;
+                }
+            }
+        }
+
+        private void ItemClear_Click(object? sender, EventArgs e)
+        {
+            var tag = GetSelectedTag();
+            if (tag == null) return;
+
+            if (MessageBox.Show($"Are you sure you want to clear the list for '{tag.Name}'?", "Confirm Clear", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                tag.ImagePaths.Clear();
+                DataManager.Save();
+                RefreshTagList();
+                LogMessage($"Cleared list for tag '{tag.Name}'.");
+            }
+        }
+
+        private void ItemCopy_Click(object? sender, EventArgs e)
+        {
+            var tag = GetSelectedTag();
+            if (tag == null) return;
+
+            string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+            string newName = $"{tag.Name}_{timestamp}";
+
+            // Ensure unique name if somehow it already exists (unlikely with seconds precision but good practice)
+            if (DataManager.Tags.Any(c => c.Name.Equals(newName, StringComparison.OrdinalIgnoreCase)))
+            {
+                newName += $"_{Guid.NewGuid().ToString().Substring(0, 4)}";
+            }
+
+            var newTag = new Tag
+            {
+                Name = newName,
+                ImagePaths = new List<string>(tag.ImagePaths)
+            };
+
+            DataManager.Tags.Add(newTag);
+            DataManager.Save();
+            RefreshTagList();
+            
+            LogMessage($"Copied tag '{tag.Name}' to '{newName}'.");
+            
+            // Optionally select the new tag
+             for (int i = 0; i < lstTags.Items.Count; i++)
+            {
+                if (lstTags.Items[i].ToString()?.StartsWith(newName) == true)
+                {
+                    lstTags.SelectedIndex = i;
+                    break;
+                }
+            }
         }
     }
 }

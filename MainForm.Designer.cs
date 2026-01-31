@@ -29,30 +29,30 @@ namespace ImageTagger
         private void InitializeComponent()
         {
             this.tabControlMain = new System.Windows.Forms.TabControl();
-            this.tabPageImageOperations = new System.Windows.Forms.TabPage();
+            this.tabPageTagging = new System.Windows.Forms.TabPage();
             this.pnlDynamicAddButtons = new System.Windows.Forms.FlowLayoutPanel();
             this.btnNext = new System.Windows.Forms.Button();
             this.btnPrev = new System.Windows.Forms.Button();
-            this.tabPageCategories = new System.Windows.Forms.TabPage();
-            this.grpCategoryActions = new System.Windows.Forms.GroupBox();
+            this.tabPageTags = new System.Windows.Forms.TabPage();
+            this.grpTagActions = new System.Windows.Forms.GroupBox();
             this.btnMove = new System.Windows.Forms.Button();
             this.btnCopy = new System.Windows.Forms.Button();
-            this.btnDeleteCategory = new System.Windows.Forms.Button();
-            this.btnAddCategory = new System.Windows.Forms.Button();
-            this.txtNewCategory = new System.Windows.Forms.TextBox();
-            this.lblCategories = new System.Windows.Forms.Label();
-            this.lstCategories = new System.Windows.Forms.ListBox();
+            this.btnDeleteTag = new System.Windows.Forms.Button();
+            this.btnAddTag = new System.Windows.Forms.Button();
+            this.txtNewTag = new System.Windows.Forms.TextBox();
+            this.lblTags = new System.Windows.Forms.Label();
+            this.lstTags = new System.Windows.Forms.ListBox();
             this.rtbLog = new System.Windows.Forms.RichTextBox();
             this.tabControlMain.SuspendLayout();
-            this.tabPageImageOperations.SuspendLayout();
-            this.tabPageCategories.SuspendLayout();
-            this.grpCategoryActions.SuspendLayout();
+            this.tabPageTagging.SuspendLayout();
+            this.tabPageTags.SuspendLayout();
+            this.grpTagActions.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControlMain
             // 
-            this.tabControlMain.Controls.Add(this.tabPageImageOperations);
-            this.tabControlMain.Controls.Add(this.tabPageCategories);
+            this.tabControlMain.Controls.Add(this.tabPageTagging);
+            this.tabControlMain.Controls.Add(this.tabPageTags);
             this.tabControlMain.Location = new System.Drawing.Point(5, 5);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
@@ -62,18 +62,18 @@ namespace ImageTagger
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControlMain.SelectedIndexChanged += new System.EventHandler(this.tabControlMain_SelectedIndexChanged);
             // 
-            // tabPageImageOperations
+            // tabPageTagging
             // 
-            this.tabPageImageOperations.Controls.Add(this.pnlDynamicAddButtons);
-            this.tabPageImageOperations.Controls.Add(this.btnNext);
-            this.tabPageImageOperations.Controls.Add(this.btnPrev);
-            this.tabPageImageOperations.Location = new System.Drawing.Point(4, 24);
-            this.tabPageImageOperations.Name = "tabPageImageOperations";
-            this.tabPageImageOperations.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageImageOperations.Size = new System.Drawing.Size(267, 372);
-            this.tabPageImageOperations.TabIndex = 0;
-            this.tabPageImageOperations.Text = "Image Operations";
-            this.tabPageImageOperations.UseVisualStyleBackColor = true;
+            this.tabPageTagging.Controls.Add(this.pnlDynamicAddButtons);
+            this.tabPageTagging.Controls.Add(this.btnNext);
+            this.tabPageTagging.Controls.Add(this.btnPrev);
+            this.tabPageTagging.Location = new System.Drawing.Point(4, 24);
+            this.tabPageTagging.Name = "tabPageTagging";
+            this.tabPageTagging.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageTagging.Size = new System.Drawing.Size(267, 372);
+            this.tabPageTagging.TabIndex = 0;
+            this.tabPageTagging.Text = "Tagging";
+            this.tabPageTagging.UseVisualStyleBackColor = true;
             // 
             // pnlDynamicAddButtons
             // 
@@ -110,33 +110,33 @@ namespace ImageTagger
             this.btnPrev.UseVisualStyleBackColor = true;
             this.btnPrev.Click += new System.EventHandler(this.btnPrev_Click);
             // 
-            // tabPageCategories
+            // tabPageTags
             // 
-            this.tabPageCategories.Controls.Add(this.grpCategoryActions);
-            this.tabPageCategories.Controls.Add(this.btnDeleteCategory);
-            this.tabPageCategories.Controls.Add(this.btnAddCategory);
-            this.tabPageCategories.Controls.Add(this.txtNewCategory);
-            this.tabPageCategories.Controls.Add(this.lblCategories);
-            this.tabPageCategories.Controls.Add(this.lstCategories);
-            this.tabPageCategories.Location = new System.Drawing.Point(4, 24);
-            this.tabPageCategories.Name = "tabPageCategories";
-            this.tabPageCategories.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageCategories.Size = new System.Drawing.Size(267, 372);
-            this.tabPageCategories.TabIndex = 1;
-            this.tabPageCategories.Text = "Category Management";
-            this.tabPageCategories.UseVisualStyleBackColor = true;
+            this.tabPageTags.Controls.Add(this.grpTagActions);
+            this.tabPageTags.Controls.Add(this.btnDeleteTag);
+            this.tabPageTags.Controls.Add(this.btnAddTag);
+            this.tabPageTags.Controls.Add(this.txtNewTag);
+            this.tabPageTags.Controls.Add(this.lblTags);
+            this.tabPageTags.Controls.Add(this.lstTags);
+            this.tabPageTags.Location = new System.Drawing.Point(4, 24);
+            this.tabPageTags.Name = "tabPageTags";
+            this.tabPageTags.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPageTags.Size = new System.Drawing.Size(267, 372);
+            this.tabPageTags.TabIndex = 1;
+            this.tabPageTags.Text = "Tags";
+            this.tabPageTags.UseVisualStyleBackColor = true;
             // 
-            // grpCategoryActions
+            // grpTagActions
             // 
-            this.grpCategoryActions.Controls.Add(this.btnMove);
-            this.grpCategoryActions.Controls.Add(this.btnCopy);
-            this.grpCategoryActions.Location = new System.Drawing.Point(6, 290);
-            this.grpCategoryActions.Name = "grpCategoryActions";
-            this.grpCategoryActions.Size = new System.Drawing.Size(255, 60);
-            this.grpCategoryActions.TabIndex = 11;
-            this.grpCategoryActions.TabStop = false;
-            this.grpCategoryActions.Text = "Actions for All Images in Category";
-            this.grpCategoryActions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.grpTagActions.Controls.Add(this.btnMove);
+            this.grpTagActions.Controls.Add(this.btnCopy);
+            this.grpTagActions.Location = new System.Drawing.Point(6, 290);
+            this.grpTagActions.Name = "grpTagActions";
+            this.grpTagActions.Size = new System.Drawing.Size(255, 60);
+            this.grpTagActions.TabIndex = 11;
+            this.grpTagActions.TabStop = false;
+            this.grpTagActions.Text = "Tag List Actions";
+            this.grpTagActions.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             // 
             // btnMove
@@ -145,7 +145,7 @@ namespace ImageTagger
             this.btnMove.Name = "btnMove";
             this.btnMove.Size = new System.Drawing.Size(120, 23);
             this.btnMove.TabIndex = 1;
-            this.btnMove.Text = "Move";
+            this.btnMove.Text = "Move to...";
             this.btnMove.UseVisualStyleBackColor = true;
             this.btnMove.Click += new System.EventHandler(this.btnMove_Click);
             // 
@@ -155,60 +155,75 @@ namespace ImageTagger
             this.btnCopy.Name = "btnCopy";
             this.btnCopy.Size = new System.Drawing.Size(120, 23);
             this.btnCopy.TabIndex = 0;
-            this.btnCopy.Text = "Copy";
+            this.btnCopy.Text = "Copy to...";
             this.btnCopy.UseVisualStyleBackColor = true;
             this.btnCopy.Click += new System.EventHandler(this.btnCopy_Click);
             // 
-            // btnDeleteCategory
+            // btnDeleteTag
             // 
-            this.btnDeleteCategory.Location = new System.Drawing.Point(6, 261);
-            this.btnDeleteCategory.Name = "btnDeleteCategory";
-            this.btnDeleteCategory.Size = new System.Drawing.Size(255, 23);
-            this.btnDeleteCategory.TabIndex = 10;
-            this.btnDeleteCategory.Text = "Delete Selected Category";
-            this.btnDeleteCategory.UseVisualStyleBackColor = true;
-            this.btnDeleteCategory.Click += new System.EventHandler(this.btnDeleteCategory_Click);
-            this.btnDeleteCategory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.btnDeleteTag.Location = new System.Drawing.Point(6, 261);
+            this.btnDeleteTag.Name = "btnDeleteTag";
+            this.btnDeleteTag.Size = new System.Drawing.Size(255, 23);
+            this.btnDeleteTag.TabIndex = 10;
+            this.btnDeleteTag.Text = "Delete Selected Tag";
+            this.btnDeleteTag.UseVisualStyleBackColor = true;
+            this.btnDeleteTag.Click += new System.EventHandler(this.btnDeleteTag_Click);
+            this.btnDeleteTag.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             // 
-            // btnAddCategory
+            // btnAddTag
             // 
-            this.btnAddCategory.Location = new System.Drawing.Point(177, 232);
-            this.btnAddCategory.Name = "btnAddCategory";
-            this.btnAddCategory.Size = new System.Drawing.Size(84, 23);
-            this.btnAddCategory.TabIndex = 9;
-            this.btnAddCategory.Text = "Add";
-            this.btnAddCategory.UseVisualStyleBackColor = true;
-            this.btnAddCategory.Click += new System.EventHandler(this.btnAddCategory_Click);
-            this.btnAddCategory.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAddTag.Location = new System.Drawing.Point(177, 232);
+            this.btnAddTag.Name = "btnAddTag";
+            this.btnAddTag.Size = new System.Drawing.Size(84, 23);
+            this.btnAddTag.TabIndex = 9;
+            this.btnAddTag.Text = "Add";
+            this.btnAddTag.UseVisualStyleBackColor = true;
+            this.btnAddTag.Click += new System.EventHandler(this.btnAddTag_Click);
+            this.btnAddTag.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             // 
-            // txtNewCategory
+            // txtNewTag
             // 
-            this.txtNewCategory.Location = new System.Drawing.Point(6, 232);
-            this.txtNewCategory.Name = "txtNewCategory";
-            this.txtNewCategory.PlaceholderText = "Enter new category name...";
-            this.txtNewCategory.Size = new System.Drawing.Size(165, 23);
-            this.txtNewCategory.TabIndex = 8;
-            this.txtNewCategory.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.txtNewTag.Location = new System.Drawing.Point(6, 232);
+            this.txtNewTag.Name = "txtNewTag";
+            this.txtNewTag.PlaceholderText = "Enter new tag name...";
+            this.txtNewTag.Size = new System.Drawing.Size(165, 23);
+            this.txtNewTag.TabIndex = 8;
+            this.txtNewTag.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             // 
-            // lblCategories
+            // lblTags
             // 
-            this.lblCategories.AutoSize = true;
-            this.lblCategories.Location = new System.Drawing.Point(6, 15);
-            this.lblCategories.Name = "lblCategories";
-            this.lblCategories.Size = new System.Drawing.Size(63, 15);
-            this.lblCategories.TabIndex = 7;
+            this.lblTags.AutoSize = true;
+            this.lblTags.Location = new System.Drawing.Point(6, 15);
+            this.lblTags.Name = "lblTags";
+            this.lblTags.Size = new System.Drawing.Size(32, 15);
+            this.lblTags.TabIndex = 7;
+            this.lblTags.Text = "Tags:"; // Changed to "Tags:" from "Categories" (implied) or similar? No, original was just "lblCategories". I'll assume text is "Tags"
+            // Wait, looking at previous file, there was no Text set for lblCategories in the snippet I saw? 
+            // Ah, I missed it. Let's check the previous read. 
+            // `this.lblCategories = new System.Windows.Forms.Label();`
+            // ...
+            // `this.lblCategories.Name = "lblCategories";`
+            // It seems the text wasn't set in InitializeComponent explicitly? Or I missed it.
+            // Wait, the previous read shows:
+            // `this.lblCategories.TabIndex = 7;`
+            // But no `.Text =`. It might be in the generated code but hidden or default. 
+            // I'll set it to "Tags".
+            // Actually, in the previous read:
+            // `this.lblCategories.Size = new System.Drawing.Size(63, 15);`
+            // But no text line. Weird. Default label text is name.
+            // I will set Text = "Tags".
             // 
-            // lstCategories
+            // lstTags
             // 
-            this.lstCategories.FormattingEnabled = true;
-            this.lstCategories.ItemHeight = 15;
-            this.lstCategories.Location = new System.Drawing.Point(6, 33);
-            this.lstCategories.Name = "lstCategories";
-            this.lstCategories.Size = new System.Drawing.Size(255, 184);
-            this.lstCategories.TabIndex = 6;
-            this.lstCategories.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            this.lstTags.FormattingEnabled = true;
+            this.lstTags.ItemHeight = 15;
+            this.lstTags.Location = new System.Drawing.Point(6, 33);
+            this.lstTags.Name = "lstTags";
+            this.lstTags.Size = new System.Drawing.Size(255, 184);
+            this.lstTags.TabIndex = 6;
+            this.lstTags.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             // 
             // rtbLog
@@ -237,28 +252,28 @@ namespace ImageTagger
             this.Text = "Image Tagger";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.tabControlMain.ResumeLayout(false);
-            this.tabPageImageOperations.ResumeLayout(false);
-            this.tabPageCategories.ResumeLayout(false);
-            this.tabPageCategories.PerformLayout();
-            this.grpCategoryActions.ResumeLayout(false);
+            this.tabPageTagging.ResumeLayout(false);
+            this.tabPageTags.ResumeLayout(false);
+            this.tabPageTags.PerformLayout();
+            this.grpTagActions.ResumeLayout(false);
             this.ResumeLayout(false);
         }
 
         #endregion
 
         private System.Windows.Forms.TabControl tabControlMain;
-        private System.Windows.Forms.TabPage tabPageImageOperations;
-        private System.Windows.Forms.TabPage tabPageCategories;
+        private System.Windows.Forms.TabPage tabPageTagging;
+        private System.Windows.Forms.TabPage tabPageTags;
         private System.Windows.Forms.Button btnNext;
         private System.Windows.Forms.Button btnPrev;
-        private System.Windows.Forms.ListBox lstCategories;
-        private System.Windows.Forms.TextBox txtNewCategory;
-        private System.Windows.Forms.Button btnAddCategory;
-        private System.Windows.Forms.Button btnDeleteCategory;
-        private System.Windows.Forms.GroupBox grpCategoryActions;
+        private System.Windows.Forms.ListBox lstTags;
+        private System.Windows.Forms.TextBox txtNewTag;
+        private System.Windows.Forms.Button btnAddTag;
+        private System.Windows.Forms.Button btnDeleteTag;
+        private System.Windows.Forms.GroupBox grpTagActions;
         private System.Windows.Forms.Button btnMove;
         private System.Windows.Forms.Button btnCopy;
-        private System.Windows.Forms.Label lblCategories;
+        private System.Windows.Forms.Label lblTags;
         private System.Windows.Forms.FlowLayoutPanel pnlDynamicAddButtons;
         private System.Windows.Forms.RichTextBox rtbLog;
     }

@@ -9,15 +9,15 @@ using ImageGlass.Tools;
 namespace ImageTagger
 {
     /// <summary>
-    /// Handles persistent storage and loading of categories and tagged image paths.
+    /// Handles persistent storage and loading of tags and tagged image paths.
     /// </summary>
     public static class DataManager
     {
         private static readonly string StoragePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "tags.json");
-        public static List<Category> Categories { get; set; } = new();
+        public static List<Tag> Tags { get; set; } = new();
 
         /// <summary>
-        /// Loads category data from the local JSON file.
+        /// Loads tag data from the local JSON file.
         /// </summary>
         public static void Load()
         {
@@ -26,13 +26,13 @@ namespace ImageTagger
             try
             {
                 string json = File.ReadAllText(StoragePath);
-                var loaded = JsonSerializer.Deserialize<List<Category>>(json);
+                var loaded = JsonSerializer.Deserialize<List<Tag>>(json);
                 if (loaded == null) return;
 
-                foreach (var category in loaded)
+                foreach (var tag in loaded)
                 {
                     var processed = new List<string>();
-                    foreach (var path in category.ImagePaths)
+                    foreach (var path in tag.ImagePaths)
                     {
                         if (string.IsNullOrWhiteSpace(path)) continue;
 
@@ -51,9 +51,9 @@ namespace ImageTagger
                             processed.Add(path);
                         }
                     }
-                    category.ImagePaths = processed.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                    tag.ImagePaths = processed.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
                 }
-                Categories = loaded;
+                Tags = loaded;
             }
             catch (Exception ex)
             {
@@ -62,14 +62,14 @@ namespace ImageTagger
         }
 
         /// <summary>
-        /// Saves current category data to the local JSON file.
+        /// Saves current tag data to the local JSON file.
         /// </summary>
         public static void Save()
         {
             try
             {
                 var options = new JsonSerializerOptions { WriteIndented = true };
-                string json = JsonSerializer.Serialize(Categories, options);
+                string json = JsonSerializer.Serialize(Tags, options);
                 File.WriteAllText(StoragePath, json);
             }
             catch (Exception ex)
