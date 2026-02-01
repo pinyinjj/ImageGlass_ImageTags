@@ -32,6 +32,7 @@ namespace ImageTagger
             this.tabPageTagging = new System.Windows.Forms.TabPage();
             this.pnlDynamicAddButtons = new System.Windows.Forms.FlowLayoutPanel();
             this.btnNext = new System.Windows.Forms.Button();
+            this.btnUndo = new System.Windows.Forms.Button();
             this.btnPrev = new System.Windows.Forms.Button();
             this.tabPageTags = new System.Windows.Forms.TabPage();
             this.grpTagActions = new System.Windows.Forms.GroupBox();
@@ -66,6 +67,7 @@ namespace ImageTagger
             // 
             this.tabPageTagging.Controls.Add(this.pnlDynamicAddButtons);
             this.tabPageTagging.Controls.Add(this.btnNext);
+            this.tabPageTagging.Controls.Add(this.btnUndo);
             this.tabPageTagging.Controls.Add(this.btnPrev);
             this.tabPageTagging.Location = new System.Drawing.Point(4, 24);
             this.tabPageTagging.Name = "tabPageTagging";
@@ -82,7 +84,7 @@ namespace ImageTagger
             this.pnlDynamicAddButtons.Location = new System.Drawing.Point(6, 70);
             this.pnlDynamicAddButtons.Name = "pnlDynamicAddButtons";
             this.pnlDynamicAddButtons.Size = new System.Drawing.Size(255, 290);
-            this.pnlDynamicAddButtons.TabIndex = 2;
+            this.pnlDynamicAddButtons.TabIndex = 3;
             this.pnlDynamicAddButtons.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlDynamicAddButtons.WrapContents = false;
@@ -90,21 +92,33 @@ namespace ImageTagger
             // btnNext
             // 
             this.btnNext.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.btnNext.Location = new System.Drawing.Point(137, 8);
+            this.btnNext.Location = new System.Drawing.Point(156, 8);
             this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(120, 56);
-            this.btnNext.TabIndex = 1;
+            this.btnNext.Size = new System.Drawing.Size(103, 56);
+            this.btnNext.TabIndex = 2;
             this.btnNext.Text = "Next >";
             this.btnNext.UseVisualStyleBackColor = true;
             this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             this.btnNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            // 
+            // btnUndo
+            // 
+            this.btnUndo.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            this.btnUndo.Location = new System.Drawing.Point(116, 8);
+            this.btnUndo.Name = "btnUndo";
+            this.btnUndo.Size = new System.Drawing.Size(35, 56);
+            this.btnUndo.TabIndex = 1;
+            this.btnUndo.Text = "⟲";
+            this.btnUndo.UseVisualStyleBackColor = true;
+            this.btnUndo.Click += new System.EventHandler(this.btnUndo_Click);
+            this.btnUndo.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             // 
             // btnPrev
             // 
             this.btnPrev.Font = new System.Drawing.Font("Segoe UI", 18F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
             this.btnPrev.Location = new System.Drawing.Point(8, 8);
             this.btnPrev.Name = "btnPrev";
-            this.btnPrev.Size = new System.Drawing.Size(120, 56);
+            this.btnPrev.Size = new System.Drawing.Size(103, 56);
             this.btnPrev.TabIndex = 0;
             this.btnPrev.Text = "< Prev";
             this.btnPrev.UseVisualStyleBackColor = true;
@@ -265,6 +279,7 @@ namespace ImageTagger
         private System.Windows.Forms.TabPage tabPageTagging;
         private System.Windows.Forms.TabPage tabPageTags;
         private System.Windows.Forms.Button btnNext;
+        private System.Windows.Forms.Button btnUndo;
         private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.ListBox lstTags;
         private System.Windows.Forms.TextBox txtNewTag;

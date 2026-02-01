@@ -22,12 +22,18 @@ namespace ImageTagger
         private string? _imagePathToAdd = null;
         private ImageGlassTool? _igTool;
         private readonly System.Windows.Forms.Timer _zOrderTimer;
+        private readonly UndoManager _undoManager;
+        private string? _currentDirectory = null;
+        private bool _hasSeenFirstImage = false;
 
         public MainForm(string[] args)
         {
             InitializeComponent();
             _args = args;
             this.FormClosing += MainForm_FormClosing;
+
+            _undoManager = new UndoManager(10);
+            _undoManager.StateChanged += (s, e) => { if (btnUndo != null) btnUndo.Enabled = _undoManager.CanUndo; };
 
             // Timer to maintain TopMost status without stealing focus
             _zOrderTimer = new System.Windows.Forms.Timer { Interval = 500 };
@@ -162,6 +168,7 @@ namespace ImageTagger
                         {
                             _imagePathToAdd = args.FilePath;
                             PopulateDynamicAddButtons();
+                            CheckForFirstImage(args.FilePath);
                         }
                     }
                     catch (Exception ex)
@@ -169,6 +176,50 @@ namespace ImageTagger
                         LogMessage($"Error sync image: {ex.Message}");
                     }
                 });
+            }
+        }
+
+        private async void CheckForFirstImage(string currentImagePath)
+        {
+            try
+            {
+                string? dir = Path.GetDirectoryName(currentImagePath);
+                if (!string.Equals(dir, _currentDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    _currentDirectory = dir;
+                    _hasSeenFirstImage = false;
+                }
+
+                // Give ImageGlass a moment to update its window title
+                await Task.Delay(200);
+
+                IntPtr hwnd = WinApi.ImageGlassControl.FindImageGlassWindow();
+                if (hwnd == IntPtr.Zero) return;
+
+                int len = WinApi.GetWindowTextLength(hwnd);
+                if (len <= 0) return;
+
+                StringBuilder sb = new StringBuilder(len + 1);
+                WinApi.GetWindowText(hwnd, sb, sb.Capacity);
+                string title = sb.ToString();
+
+                // Regex matches "1/N" or " 1 / N " patterns (e.g. "image.jpg - 1/50 - ImageGlass")
+                if (System.Text.RegularExpressions.Regex.IsMatch(title, @"\b1\s*/\s*\d+\b"))
+                {
+                    if (_hasSeenFirstImage)
+                    {
+                        // Use TopMost MessageBox to ensure it's seen over ImageGlass
+                        MessageBox.Show(new Form { TopMost = true }, "已到第一张图片", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    else
+                    {
+                        _hasSeenFirstImage = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Error checking first image: {ex.Message}");
             }
         }
 
@@ -327,9 +378,15 @@ namespace ImageTagger
 
         private void btnPrev_Click(object sender, EventArgs e) => Navigate(-1);
         private void btnNext_Click(object sender, EventArgs e) => Navigate(1);
+        private void btnUndo_Click(object sender, EventArgs e) => _undoManager.Undo();
 
-        private void Navigate(int direction)
+        private void Navigate(int direction, bool recordUndo = true)
         {
+            if (recordUndo)
+            {
+                _undoManager.Push(new NavigationCommand(this, direction));
+            }
+
             WinApi.ImageGlassControl.SendImageGlassKey(direction > 0 ? Keys.Right : Keys.Left);
             Task.Delay(150).ContinueWith(_ => 
             {
@@ -381,9 +438,12 @@ namespace ImageTagger
             {
                 tag.ImagePaths.Add(_imagePathToAdd);
                 DataManager.Save();
+                
+                _undoManager.Push(new AddTagCommand(this, tagName, _imagePathToAdd, true));
+
                 LogMessage($"Added '{Path.GetFileName(_imagePathToAdd)}' to '{tagName}'.");
                 RefreshTagList();
-                Navigate(1); // Auto next
+                Navigate(1, false); // Auto next, don't record separate navigation
             }
         }
 
@@ -654,15 +714,136 @@ namespace ImageTagger
             
             LogMessage($"Copied tag '{tag.Name}' to '{newName}'.");
             
-            // Optionally select the new tag
-             for (int i = 0; i < lstTags.Items.Count; i++)
-            {
-                if (lstTags.Items[i].ToString()?.StartsWith(newName) == true)
-                {
-                    lstTags.SelectedIndex = i;
-                    break;
+                        // Optionally select the new tag
+            
+                         for (int i = 0; i < lstTags.Items.Count; i++)
+            
+                        {
+            
+                            if (lstTags.Items[i].ToString()?.StartsWith(newName) == true)
+            
+                            {
+            
+                                lstTags.SelectedIndex = i;
+            
+                                break;
+            
+                            }
+            
+                        }
+            
+                    }
+            
+            
+            
+                    private class NavigationCommand : IUndoCommand
+            
+                    {
+            
+                        private readonly MainForm _form;
+            
+                        private readonly int _direction;
+            
+                        public string Description => "Navigation";
+            
+            
+            
+                        public NavigationCommand(MainForm form, int direction)
+            
+                        {
+            
+                            _form = form;
+            
+                            _direction = direction;
+            
+                        }
+            
+            
+            
+                        public void Undo()
+            
+                        {
+            
+                            _form.Navigate(-_direction, false);
+            
+                        }
+            
+                    }
+            
+            
+            
+                    private class AddTagCommand : IUndoCommand
+            
+                    {
+            
+                        private readonly MainForm _form;
+            
+                        private readonly string _tagName;
+            
+                        private readonly string _imagePath;
+            
+                        private readonly bool _autoNavigated;
+            
+                        public string Description => $"Add to {_tagName}";
+            
+            
+            
+                        public AddTagCommand(MainForm form, string tagName, string imagePath, bool autoNavigated)
+            
+                        {
+            
+                            _form = form;
+            
+                            _tagName = tagName;
+            
+                            _imagePath = imagePath;
+            
+                            _autoNavigated = autoNavigated;
+            
+                        }
+            
+            
+            
+                        public void Undo()
+            
+                        {
+            
+                            if (_autoNavigated)
+            
+                            {
+            
+                                _form.Navigate(-1, false);
+            
+                            }
+            
+            
+            
+                            var tag = DataManager.Tags.FirstOrDefault(t => t.Name == _tagName);
+            
+                            if (tag != null)
+            
+                            {
+            
+                                if (tag.ImagePaths.Remove(_imagePath))
+            
+                                {
+            
+                                    DataManager.Save();
+            
+                                    _form.RefreshTagList();
+            
+                                    _form.LogMessage($"Undid add to '{_tagName}'");
+            
+                                }
+            
+                            }
+            
+                        }
+            
+                    }
+            
                 }
+            
             }
-        }
-    }
-}
+            
+            
