@@ -1,3 +1,5 @@
-/.vs
-/obj
-/bin
+.vs/
+obj/
+bin/
+tags.json
+*.user

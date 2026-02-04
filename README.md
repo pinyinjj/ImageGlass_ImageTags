@@ -1,118 +1,71 @@
-# Image Tagger
+# ImageTagger
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)](https://dotnet.microsoft.com/)
+## 项目概述
+ImageTagger 是一个基于 Windows Forms 的图像标记工具，专为配合 ImageGlass 图像查看器使用而设计。它允许用户在浏览图片时快速将图片分类到自定义的标签组中，并支持后续对这些标记图片进行批量复制或移动操作。该工具通过 ImageGlass Tools SDK 与 ImageGlass 进行深度集成，实现图片路径的实时同步和导航控制。
 
-**Image Tagger** 是一个专为 [ImageGlass 9](https://imageglass.org/) 图片浏览器打造的高效分类与整理插件。它通过无缝集成，允许用户在浏览图片时，仅需一次点击即可完成图片的归类标记，并支持后续的一键批量移动或复制，极大地提升了素材整理和图片筛选的效率。
+## 安装指南
 
----
+### 前置条件
+1.  Windows 操作系统 (支持 .NET 环境)。
+2.  已安装 [ImageGlass](https://imageglass.org/) 图像查看器。
 
+### 安装步骤
+1.  下载 ImageTagger 的最新版本压缩包。
+2.  将压缩包解压到任意目录。
+3.  建议将 ImageTagger 配置为 ImageGlass 的外部工具，以便快速启动。
 
-## ✨ 核心功能
+## 使用方法
 
-  **沉浸式标记体验**
-    *   **实时同步**：插件自动感知 ImageGlass 当前显示的图片。
-    *   **无焦点交互**：窗口保持置顶但不抢夺输入焦点（TopMost + NoActivate），确保你在 ImageGlass 中的快捷键（如缩放、平移）不受干扰。
-    *   **自动翻页**：标记图片后，自动模拟键盘“右箭头”操作，切换至下一张图片，形成流畅的“查看 -> 标记 -> 下一张”工作流。
+### 启动程序
+可以直接运行 `ImageTagger.exe`。如果通过 ImageGlass 启动（例如作为工具栏插件），它会自动加载当前查看的图片。
 
- **灵活的分类管理**
-    *   支持动态创建、删除自定义分类标签（如“风景”、“待修图”、“素材”）。
-    *   根据分类数量自动调整窗口高度，最大化利用屏幕空间。
+### 标签管理
+*   **添加标签**：在 "Tags" 选项卡中，点击右上角的 "+" 按钮，输入标签名称并确认。
+*   **删除标签**：选中列表中的标签，点击右上角的 "-" 按钮，或右键点击标签选择 "Delete"。
+*   **管理标签**：右键点击标签列表，可以使用 "Clear" (清空标签内的图片) 或 "Duplicate" (复制标签及其内容)。
 
-  **高效的批量处理**
-    *   **一键导出**：支持将某个分类下的所有图片批量 **复制** 或 **移动** 到指定文件夹。
-    *   **冲突处理**：自动处理文件名冲突（如 `image.jpg` -> `image (1).jpg`），防止覆盖。
+### 标记图片
+1.  确保 ImageGlass 正在运行并显示图片。
+2.  在 ImageTagger 的 "Tagging" 选项卡中，你会看到当前 ImageGlass 中显示的图片路径（如果已同步）。
+3.  界面会为每个已创建的标签显示一个按钮。
+4.  点击对应的标签按钮，将当前图片添加到该标签中。
+5.  添加成功后，ImageGlass 会自动跳转到下一张图片（此行为支持撤销）。
 
-  **数据持久化**
-    *   所有分类和标记数据自动保存为 `tags.json`，方便备份与迁移。
-    *   智能识别并修正旧版本数据路径。
+### 批量操作
+在 "Tags" 选项卡中选中一个标签，可以使用底部的功能按钮：
+*   **Copy to...**：将该标签下的所有图片**复制**到指定文件夹。
+*   **Move to...**：将该标签下的所有图片**移动**到指定文件夹（移动成功后会清空标签列表）。
+*   **Undo**：撤销上一次的标记或导航操作。
 
----
+## 配置说明
 
+### 数据存储
+所有的标签和图片路径数据存储在程序运行目录下的 `tags.json` 文件中。
+*   这是一个标准 JSON 文件，可以手动备份或编辑（请确保格式正确）。
 
-## 环境要求
+### 窗口行为
+*   程序默认保持 "总在最前" (Always on Top)，以便在全屏浏览图片时操作。
+*   窗口高度会根据标签数量和日志内容自动调整。
 
-*   **操作系统**: Windows 10 / 11
-*   **运行环境**: [.NET 8.0 Desktop Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-*   **宿主程序**: ImageGlass 9.0 或更高版本
+## API参考
 
----
+本程序主要使用 `ImageGlass.Tools` 库与 ImageGlass 通信。
 
-## 🛠 编译指南
+### 主要类说明
+*   `DataManager`：负责 `tags.json` 的序列化与反序列化。
+*   `MainForm`：主界面逻辑，包含与 ImageGlass 的连接 (`ImageGlassTool`)、UI 事件处理及自动布局逻辑。
+*   `UndoManager`：实现命令模式的撤销栈，支持 `NavigationCommand` (导航) 和 `AddTagCommand` (标记) 的回滚。
 
-1.  **克隆仓库**
-    ```bash
-    git clone https://github.com/pinyinjj/ImageGlass_ImageTags.git
-    cd ImageGlass_ImageTags
-    ```
+## 贡献指南
 
-2.  **执行编译**
-    使用 .NET CLI 进行发布模式编译：
-    ```bash
-    dotnet build -c Release
-    ```
+欢迎提交 Issue 或 Pull Request 来改进此项目。
 
-3.  **获取产物**
-    编译成功后，可执行文件位于：
-    `bin/Release/net8.0-windows/ImageTagger.exe`
+1.  Fork 本仓库。
+2.  创建你的特性分支 (`git checkout -b feature/AmazingFeature`)。
+3.  提交你的更改 (`git commit -m 'Add some AmazingFeature'`)。
+4.  推送到分支 (`git push origin feature/AmazingFeature`)。
+5.  开启一个 Pull Request。
 
----
+## 许可证信息
 
-## 📦 安装与配置
-
-将编译好的 `ImageTagger` 集成到 ImageGlass 中：
-
-1.  打开 ImageGlass，进入 **设置 (Settings)** -> **工具 (Tools)**。
-2.  点击 **添加 (Add)** 按钮创建新工具。
-3.  填写以下配置：
-    *   **Name (名称)**: `Image Tagger` (或你喜欢的名字)
-    *   **Command (命令)**: 浏览并选择你编译生成的 `ImageTagger.exe` 路径。
-    *   **Argument (参数)**: `<file>`
-        *   *注意：这会将当前图片路径作为启动参数传递。*
-    *   **Hotkeys (快捷键)**: 建议设置一个顺手的快捷键，例如 `Ctrl+T`。
-    *   **勾选选项**: ✅ **Integrated with ImageGlass.Tools**
-        *   *重要：必须勾选此项，插件才能通过管道与 ImageGlass 通信。*
-4.  点击 **Apply** 保存。
-
----
-
-## 📖 使用手册
-
-### 1. 初始化分类
-*   启动插件（通过 ImageGlass 工具栏或快捷键）。
-*   切换到 **"Category Management" (分类管理)** 标签页。
-*   在输入框中输入分类名称（例如 "Wallpapers"），点击 **Add**。
-*   建议预先建立好所有常用分类。
-
-### 2. 开始标记
-*   在 ImageGlass 中浏览图片。
-*   点击插件界面上的 **"Add to [分类名]"** 按钮。
-*   **效果**：
-    1.  当前图片路径被记录到该分类。
-    2.  按钮上显示的计数加 1。
-    3.  ImageGlass 自动切换到下一张图片。
-
-### 3. 导出整理结果
-*   整理完成后，回到 **"Category Management"** 标签页。
-*   选中一个分类。
-*   点击 **Copy (复制)** 或 **Move (移动)**。
-*   选择目标文件夹，程序将自动开始传输文件，并报告成功数量。
-
----
-
-## ❓ 常见问题
-
-**Q: 插件启动后显示 "No image loaded"？**
-A: 请确保在 ImageGlass 工具设置中勾选了 **"Integrated with ImageGlass.Tools"**。如果问题依旧，尝试在 ImageGlass 中手动切换一张图片，插件应会自动同步。
-
-**Q: 为什么我按了按钮，图片没有自动切换？**
-A: 插件通过模拟键盘按键实现翻页。请确保 ImageGlass 没有被最小化，且系统未拦截按键模拟。
-
-**Q: `tags.json` 文件在哪里？**
-A: 该文件位于 `ImageTagger.exe` 同级目录下。你可以随时备份此文件以保存你的整理进度。
-
----
-
-## 📜 许可证
-
-本项目采用 [MIT License](LICENSE) 授权，欢迎自由修改与分发。
+本项目采用 MIT 许可证。详情请参阅项目根目录下的 [LICENSE](LICENSE) 文件。

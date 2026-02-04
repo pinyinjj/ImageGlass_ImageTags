@@ -368,7 +368,6 @@ namespace ImageTagger
                 }
 
                 if (move) tag.ImagePaths = remaining;
-                else if (success > 0) tag.ImagePaths.Clear();
 
                 DataManager.Save();
                 RefreshTagList();
@@ -451,6 +450,42 @@ namespace ImageTagger
         {
             if (tabControlMain.SelectedTab == tabPageTagging) PopulateDynamicAddButtons();
             AdjustFormHeight();
+        }
+
+        private void tabControlMain_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            TabPage page = tabControlMain.TabPages[e.Index];
+            Rectangle bounds = tabControlMain.GetTabRect(e.Index);
+
+            bool isSelected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+            // Background - use a clean white for selected, and a light gray for unselected
+            Color backColor = isSelected ? Color.White : Color.FromArgb(245, 245, 245);
+            using (Brush backBrush = new SolidBrush(backColor))
+            {
+                g.FillRectangle(backBrush, bounds);
+            }
+
+            // Selection indicator (bottom line)
+            if (isSelected)
+            {
+                // Use a standard Windows accent color
+                using (Brush accentBrush = new SolidBrush(Color.FromArgb(0, 120, 212)))
+                {
+                    g.FillRectangle(accentBrush, new Rectangle(bounds.X, bounds.Bottom - 3, bounds.Width, 3));
+                }
+            }
+
+            // Text rendering
+            TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.SingleLine;
+            Color textColor = isSelected ? Color.Black : Color.FromArgb(120, 120, 120);
+            
+            // Slightly bolder font for selected tab
+            using (Font tabFont = new Font(tabControlMain.Font.FontFamily, 9.5f, isSelected ? FontStyle.Bold : FontStyle.Regular))
+            {
+                TextRenderer.DrawText(g, page.Text, tabFont, bounds, textColor, flags);
+            }
         }
 
         private string GetUniqueDestinationPath(string path)

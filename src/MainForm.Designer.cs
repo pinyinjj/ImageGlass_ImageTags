@@ -52,16 +52,21 @@ namespace ImageTagger
             // 
             // tabControlMain
             // 
+            this.tabControlMain.Alignment = System.Windows.Forms.TabAlignment.Top;
             this.tabControlMain.Controls.Add(this.tabPageTagging);
             this.tabControlMain.Controls.Add(this.tabPageTags);
+            this.tabControlMain.DrawMode = System.Windows.Forms.TabDrawMode.OwnerDrawFixed;
+            this.tabControlMain.ItemSize = new System.Drawing.Size(130, 32);
             this.tabControlMain.Location = new System.Drawing.Point(5, 5);
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
             this.tabControlMain.Size = new System.Drawing.Size(275, 400);
+            this.tabControlMain.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.tabControlMain.TabIndex = 8;
             this.tabControlMain.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControlMain.SelectedIndexChanged += new System.EventHandler(this.tabControlMain_SelectedIndexChanged);
+            this.tabControlMain.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tabControlMain_DrawItem);
             // 
             // tabPageTagging
             // 
@@ -69,12 +74,12 @@ namespace ImageTagger
             this.tabPageTagging.Controls.Add(this.btnNext);
             this.tabPageTagging.Controls.Add(this.btnUndo);
             this.tabPageTagging.Controls.Add(this.btnPrev);
-            this.tabPageTagging.Location = new System.Drawing.Point(4, 24);
+            this.tabPageTagging.Location = new System.Drawing.Point(4, 36);
             this.tabPageTagging.Name = "tabPageTagging";
             this.tabPageTagging.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageTagging.Size = new System.Drawing.Size(267, 372);
+            this.tabPageTagging.Size = new System.Drawing.Size(267, 360);
             this.tabPageTagging.TabIndex = 0;
-            this.tabPageTagging.Text = "Tagging";
+            this.tabPageTagging.Text = "Operations";
             this.tabPageTagging.UseVisualStyleBackColor = true;
             // 
             // pnlDynamicAddButtons
@@ -132,10 +137,10 @@ namespace ImageTagger
             this.tabPageTags.Controls.Add(this.txtNewTag);
             this.tabPageTags.Controls.Add(this.lblTags);
             this.tabPageTags.Controls.Add(this.lstTags);
-            this.tabPageTags.Location = new System.Drawing.Point(4, 24);
+            this.tabPageTags.Location = new System.Drawing.Point(4, 36);
             this.tabPageTags.Name = "tabPageTags";
             this.tabPageTags.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPageTags.Size = new System.Drawing.Size(267, 372);
+            this.tabPageTags.Size = new System.Drawing.Size(267, 360);
             this.tabPageTags.TabIndex = 1;
             this.tabPageTags.Text = "Tags";
             this.tabPageTags.UseVisualStyleBackColor = true;
