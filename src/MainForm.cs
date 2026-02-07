@@ -23,8 +23,8 @@ namespace ImageTagger
         private ImageGlassTool? _igTool;
         private readonly System.Windows.Forms.Timer _zOrderTimer;
         private readonly UndoManager _undoManager;
-        private string? _currentDirectory = null;
-        private bool _hasSeenFirstImage = false;
+        private bool _isFirstCheck = true;
+        private string? _lastReportedPos = null;
 
         public MainForm(string[] args)
         {
@@ -126,6 +126,7 @@ namespace ImageTagger
                 {
                     tabControlMain.SelectedTab = tabPageTagging;
                     PopulateDynamicAddButtons();
+                    CheckForFirstImage(_imagePathToAdd);
                 }
             }
             else
@@ -179,42 +180,83 @@ namespace ImageTagger
             }
         }
 
+        /// <summary>
+        /// Checks if the current image is the first one in the directory (1/N) and notifies the user.
+        /// Waits for ImageGlass to fully update its UI (filename + index) before judging.
+        /// </summary>
         private async void CheckForFirstImage(string currentImagePath)
         {
+            if (string.IsNullOrWhiteSpace(currentImagePath)) return;
+            string targetPath = currentImagePath;
+            string fileName = Path.GetFileName(targetPath);
+
             try
             {
-                string? dir = Path.GetDirectoryName(currentImagePath);
-                if (!string.Equals(dir, _currentDirectory, StringComparison.OrdinalIgnoreCase))
-                {
-                    _currentDirectory = dir;
-                    _hasSeenFirstImage = false;
-                }
-
-                // Give ImageGlass a moment to update its window title
+                // Initial wait of 200ms to allow ImageGlass to start UI update
                 await Task.Delay(200);
 
-                IntPtr hwnd = WinApi.ImageGlassControl.FindImageGlassWindow();
-                if (hwnd == IntPtr.Zero) return;
-
-                int len = WinApi.GetWindowTextLength(hwnd);
-                if (len <= 0) return;
-
-                StringBuilder sb = new StringBuilder(len + 1);
-                WinApi.GetWindowText(hwnd, sb, sb.Capacity);
-                string title = sb.ToString();
-
-                // Regex matches "1/N" or " 1 / N " patterns (e.g. "image.jpg - 1/50 - ImageGlass")
-                if (System.Text.RegularExpressions.Regex.IsMatch(title, @"\b1\s*/\s*\d+\b"))
+                string currentPos = string.Empty;
+                
+                // Poll for up to 1 second for the title to synchronize (FileName + NEW Index)
+                for (int i = 0; i < 20; i++)
                 {
-                    if (_hasSeenFirstImage)
+                    if (_imagePathToAdd != targetPath) return;
+
+                    IntPtr hwnd = WinApi.ImageGlassControl.FindImageGlassWindow();
+                    if (hwnd != IntPtr.Zero)
                     {
-                        // Use TopMost MessageBox to ensure it's seen over ImageGlass
-                        MessageBox.Show(new Form { TopMost = true }, "已到第一张图片", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        int len = WinApi.GetWindowTextLength(hwnd);
+                        if (len > 0)
+                        {
+                            StringBuilder sb = new StringBuilder(len + 1);
+                            WinApi.GetWindowText(hwnd, sb, sb.Capacity);
+                            string title = sb.ToString();
+
+                            // Title must contain current filename
+                            if (title.Contains(fileName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var match = System.Text.RegularExpressions.Regex.Match(title, @"\b(\d+)\s*/\s*(\d+)\b");
+                                if (match.Success)
+                                {
+                                    string detectedPos = $"{match.Groups[1].Value}/{match.Groups[2].Value}";
+                                    
+                                    // If index hasn't changed since the last load, it's likely stale data.
+                                    // Keep waiting unless we've waited too long or it's the very first load.
+                                    if (_lastReportedPos != null && detectedPos == _lastReportedPos && i < 15)
+                                    {
+                                        // Still showing old index, continue polling...
+                                    }
+                                    else
+                                    {
+                                        currentPos = detectedPos;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    await Task.Delay(50);
+                }
+
+                if (string.IsNullOrEmpty(currentPos)) return;
+
+                // Update state
+                _lastReportedPos = currentPos;
+
+                if (currentPos.StartsWith("1/"))
+                {
+                    if (_isFirstCheck)
+                    {
+                        _isFirstCheck = false;
                     }
                     else
                     {
-                        _hasSeenFirstImage = true;
+                        MessageBox.Show(new Form { TopMost = true }, "Reached the first image.", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
+                }
+                else
+                {
+                    _isFirstCheck = false;
                 }
             }
             catch (Exception ex)
@@ -387,10 +429,8 @@ namespace ImageTagger
             }
 
             WinApi.ImageGlassControl.SendImageGlassKey(direction > 0 ? Keys.Right : Keys.Left);
-            Task.Delay(150).ContinueWith(_ => 
-            {
-                if (!this.IsDisposed) this.Invoke(new Action(RequestCurrentImage));
-            });
+            // ImageGlass will automatically send an IMAGE_LOADED event to the connected tool.
+            // No need to manually request image here to avoid double processing.
         }
 
         private void PopulateDynamicAddButtons()
@@ -442,7 +482,7 @@ namespace ImageTagger
 
                 LogMessage($"Added '{Path.GetFileName(_imagePathToAdd)}' to '{tagName}'.");
                 RefreshTagList();
-                Navigate(1, false); // Auto next, don't record separate navigation
+                Navigate(1, false); // Auto next
             }
         }
 
