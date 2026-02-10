@@ -1,5 +1,14 @@
 # ImageTagger
 
+[中文](doc/README_CN.md)
+
+[![GitHub Stars](https://img.shields.io/github/stars/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/stargazers)
+[![GitHub Watchers](https://img.shields.io/github/watchers/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/watchers)
+[![GitHub Forks](https://img.shields.io/github/forks/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/network/members)
+[![GitHub Contributors](https://img.shields.io/github/contributors/pinyinjj/ImageGlass_ImageTags)](https://github.com/pinyinjj/ImageGlass_ImageTags/graphs/contributors)
+
+<img src="doc/ops.png" width="400"> <img src="doc/tags.png" width="400">
+
 ## Project Overview
 ImageTagger is a Windows Forms-based image tagging tool designed to work alongside the ImageGlass image viewer. It allows users to quickly categorize images into custom tag groups while browsing and supports batch operations such as copying or moving tagged images. The tool integrates deeply with ImageGlass via the ImageGlass Tools SDK, enabling real-time image path synchronization and navigation control.
 
@@ -12,12 +21,14 @@ ImageTagger is a Windows Forms-based image tagging tool designed to work alongsi
 ### Steps
 1.  Download the latest release archive of ImageTagger.
 2.  Extract the archive to any directory.
-3.  Optionally, configure ImageTagger as an external tool in ImageGlass for quick access.
+3.  Make ImageTagger as an external tool in ImageGlass for quick access.
 
 ## Usage
 
 ### Launching the Application
-Run `ImageTagger.exe` directly. When launched from ImageGlass (e.g., as a toolbar plugin), it automatically loads the currently viewed image.
+<img src="doc/launch.png" width="300">
+
+In ImageGlass, open the **Settings** menu and navigate to **Tools** > **ImageTagger** to launch the plugin. It automatically synchronizes with the currently viewed image.
 
 ### Tag Management
 *   **Add Tag**: In the "Tags" tab, click the "+" button in the top right, enter a tag name, and confirm.
@@ -60,4 +71,4 @@ Issues and Pull Requests are welcome to improve this project.
 5.  Open a Pull Request.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
