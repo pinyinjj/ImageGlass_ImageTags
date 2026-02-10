@@ -7,7 +7,7 @@
 [![GitHub Forks](https://img.shields.io/github/forks/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/network/members)
 [![GitHub Contributors](https://img.shields.io/github/contributors/pinyinjj/ImageGlass_ImageTags)](https://github.com/pinyinjj/ImageGlass_ImageTags/graphs/contributors)
 
-<img src="doc/ops.png" width="400"> <img src="doc/tags.png" width="400">
+<img src="doc/ops.png" width="200"> <img src="doc/tags.png" width="200">
 
 ## Project Overview
 ImageTagger is a Windows Forms-based image tagging tool designed to work alongside the ImageGlass image viewer. It allows users to quickly categorize images into custom tag groups while browsing and supports batch operations such as copying or moving tagged images. The tool integrates deeply with ImageGlass via the ImageGlass Tools SDK, enabling real-time image path synchronization and navigation control.
