@@ -1,9 +1,11 @@
 # ImageTagger
 
-[![GitHub Stars](https://img.shields.io/github/stars/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/stargazers)
-[![GitHub Watchers](https://img.shields.io/github/watchers/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/watchers)
-[![GitHub Forks](https://img.shields.io/github/forks/pinyinjj/ImageGlass_ImageTags?style=social)](https://github.com/pinyinjj/ImageGlass_ImageTags/network/members)
-[![GitHub Contributors](https://img.shields.io/github/contributors/pinyinjj/ImageGlass_ImageTags)](https://github.com/pinyinjj/ImageGlass_ImageTags/graphs/contributors)
+[![GitHub Release](https://img.shields.io/github/v/release/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/releases)
+[![Build Status](https://github.com/pinyinjj/ImageGlass_ImageTags/actions/workflows/build.yml/badge.svg)](https://github.com/pinyinjj/ImageGlass_ImageTags/actions)
+[![License](https://img.shields.io/github/license/pinyinjj/ImageGlass_ImageTags?style=flat-square)](../LICENSE)
+[![.NET](https://img.shields.io/badge/.NET-8.0-512bd4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![GitHub Stars](https://img.shields.io/github/stars/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/network/members)
 
 <img src="ops.png" width="400"> <img src="tags.png" width="400">
 
