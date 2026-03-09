@@ -4,7 +4,7 @@
 
 [![GitHub Release](https://img.shields.io/github/v/release/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/releases)
 [![Build Status](https://github.com/pinyinjj/ImageGlass_ImageTags/actions/workflows/build.yml/badge.svg)](https://github.com/pinyinjj/ImageGlass_ImageTags/actions)
-[![License](https://img.shields.io/github/license/pinyinjj/ImageGlass_ImageTags?style=flat-square)](LICENSE)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/gpl-3.0)
 [![.NET](https://img.shields.io/badge/.NET-8.0-512bd4?style=flat-square&logo=dotnet)](https://dotnet.microsoft.com/download/dotnet/8.0)
 [![GitHub Stars](https://img.shields.io/github/stars/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/pinyinjj/ImageGlass_ImageTags?style=flat-square)](https://github.com/pinyinjj/ImageGlass_ImageTags/network/members)
