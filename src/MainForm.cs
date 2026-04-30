@@ -41,6 +41,7 @@ namespace ImageTagger
             _zOrderTimer.Start();
 
             SetWindowAlwaysOnTop();
+            ConfigManager.ApplyWindowSettings(this);
         }
 
         protected override async void OnHandleCreated(EventArgs e)
@@ -276,6 +277,8 @@ namespace ImageTagger
                 _igTool.ToolMessageReceived -= _igTool_ToolMessageReceived;
                 _igTool.Dispose();
             }
+
+            ConfigManager.SaveWindowSettings(this);
         }
 
         private void LogMessage(string message)
